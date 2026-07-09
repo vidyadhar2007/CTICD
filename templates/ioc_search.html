@@ -1,0 +1,754 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="pro-layout">
+
+    <aside class="pro-sidebar">
+
+        <div class="pro-brand">
+            <div class="pro-logo">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+
+            <div>
+                <h2>CTICD</h2>
+                <p>Cyber Threat Intelligence<br>Dashboard</p>
+            </div>
+        </div>
+
+        <div class="pro-menu">
+            <a href="{{ url_for('dashboard') }}">
+                <i class="bi bi-house-door-fill"></i>
+                Dashboard
+            </a>
+
+            <a class="active" href="{{ url_for('ioc_search') }}">
+                <i class="bi bi-search"></i>
+                IOC Search
+            </a>
+
+            <a href="#">
+                <i class="bi bi-globe2"></i>
+                Threat Map
+            </a>
+
+            <a href="#">
+                <i class="bi bi-broadcast"></i>
+                Threat Feed
+            </a>
+
+            <a href="#">
+                <i class="bi bi-diagram-3"></i>
+                Correlation Engine
+            </a>
+
+            <a href="#">
+                <i class="bi bi-bug"></i>
+                Malware Analysis
+            </a>
+
+            <a href="#">
+                <i class="bi bi-exclamation-triangle"></i>
+                CVE Explorer
+            </a>
+
+            <a href="#">
+                <i class="bi bi-file-earmark-text"></i>
+                Reports
+            </a>
+
+            <a href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-left"></i>
+                Logout
+            </a>
+        </div>
+
+        <div class="pro-system">
+            <h5>IOC Engine Status</h5>
+            <p class="green">● Analysis Engine Online</p>
+            <hr>
+            <p>Threat Feeds</p>
+            <h6>9 / 9 Active</h6>
+            <p>Last Scan</p>
+            <h6>Real-time</h6>
+        </div>
+
+    </aside>
+
+    <main class="pro-main">
+
+        <div class="pro-top">
+            <div>
+                <h1>IOC Search Engine</h1>
+                <p>Analyze IP addresses, domains, URLs, MD5, SHA1 and SHA256 hashes</p>
+            </div>
+
+            <div class="pro-profile">
+                <div class="pro-bell">
+                    <i class="bi bi-bell"></i>
+                    <span>8</span>
+                </div>
+
+                <i class="bi bi-moon"></i>
+
+                <div class="pro-user">
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <div>
+                    <strong>{{ current_user.name }}</strong>
+                    <p>Security Analyst</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pro-panel">
+
+            <form method="POST">
+
+                <div class="row align-items-center g-3">
+
+                    <div class="col-md-9">
+                        <label class="form-label text-secondary">
+                            Indicator of Compromise
+                        </label>
+
+                        <input
+                            class="form-control cyber-input"
+                            type="text"
+                            name="ioc"
+                            placeholder="Enter IP, domain, URL, MD5, SHA1 or SHA256 hash"
+                            required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label text-secondary">
+                            Action
+                        </label>
+
+                        <button class="btn cyber-btn w-100">
+                            <i class="bi bi-search"></i>
+                            Analyze IOC
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <br>
+
+        {% if not result %}
+
+        <div class="pro-panel">
+            <h3>Supported IOC Types</h3>
+            <p class="text-secondary">
+                Enter any suspicious indicator to classify and analyze it using the CTICD local threat intelligence engine.
+            </p>
+
+            <div class="bottom">
+
+                <div class="chart-card">
+                    <h4>IP Address</h4>
+                    <p>Example</p>
+                    <h5>185.220.101.45</h5>
+                    <small class="text-secondary">GeoIP, ASN, reputation and abuse score</small>
+                </div>
+
+                <div class="chart-card">
+                    <h4>Domain</h4>
+                    <p>Example</p>
+                    <h5>secure-login.xyz</h5>
+                    <small class="text-secondary">WHOIS, DNS, phishing and campaign mapping</small>
+                </div>
+
+                <div class="chart-card">
+                    <h4>URL</h4>
+                    <p>Example</p>
+                    <h5>https://evil-site.com/login</h5>
+                    <small class="text-secondary">URL reputation, path analysis and indicators</small>
+                </div>
+
+                <div class="chart-card">
+                    <h4>File Hash</h4>
+                    <p>Example</p>
+                    <h5 style="font-size:12px;">SHA256 / MD5 / SHA1</h5>
+                    <small class="text-secondary">Malware family, detection and MITRE mapping</small>
+                </div>
+
+            </div>
+        </div>
+
+        {% endif %}
+
+        {% if result %}
+
+        <div class="pro-stats">
+
+            <div class="pro-card danger">
+                <p>Threat Score</p>
+                <h2>{{ result.threat_score }}</h2>
+                <small>Out of 100</small>
+                <b>{{ result.severity }}</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>IOC Type</p>
+                <h2 style="font-size:24px;">{{ result.ioc_type }}</h2>
+                <small>Auto-detected</small>
+                <b>VALID</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Status</p>
+                <h2 style="font-size:26px;">{{ result.status }}</h2>
+                <small>Reputation</small>
+                <b>{{ result.confidence }}%</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Confidence</p>
+                <h2>{{ result.confidence }}%</h2>
+                <small>Engine confidence</small>
+                <b>CTICD</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card danger">
+                <p>MITRE</p>
+                <h2 style="font-size:26px;">{{ result.mitre_id }}</h2>
+                <small>{{ result.mitre_name }}</small>
+                <b>Mapped</b>
+                <div class="spark"></div>
+            </div>
+
+        </div>
+                <div class="row">
+
+            <!-- ================= IOC DETAILS ================= -->
+
+            <div class="col-lg-7">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-info-circle"></i>
+                            IOC INFORMATION
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover align-middle">
+
+                        <tr>
+                            <th width="220">Indicator</th>
+                            <td>{{ result.ioc }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>IOC Type</th>
+                            <td>{{ result.ioc_type }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Threat Level</th>
+                            <td>
+
+                                {% if result.severity=="Critical" %}
+                                <span class="badge bg-danger">
+                                    Critical
+                                </span>
+
+                                {% elif result.severity=="High" %}
+                                <span class="badge bg-warning text-dark">
+                                    High
+                                </span>
+
+                                {% elif result.severity=="Medium" %}
+                                <span class="badge bg-info">
+                                    Medium
+                                </span>
+
+                                {% else %}
+                                <span class="badge bg-success">
+                                    Low
+                                </span>
+                                {% endif %}
+
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Status</th>
+                            <td>{{ result.status }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Source Feed</th>
+                            <td>{{ result.source }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Confidence</th>
+                            <td>{{ result.confidence }}%</td>
+                        </tr>
+
+                        <tr>
+                            <th>First Seen</th>
+                            <td>{{ result.first_seen }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Last Seen</th>
+                            <td>{{ result.last_seen }}</td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+
+                <!-- ================= GEO INFORMATION ================= -->
+
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+
+                            <i class="bi bi-globe2"></i>
+
+                            GEO INFORMATION
+
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover">
+
+                        <tr>
+                            <th width="220">Country</th>
+                            <td>{{ result.geo.country }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>City</th>
+                            <td>{{ result.geo.city }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Region</th>
+                            <td>{{ result.geo.region }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Latitude</th>
+                            <td>{{ result.geo.latitude }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Longitude</th>
+                            <td>{{ result.geo.longitude }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>ASN</th>
+                            <td>{{ result.geo.asn }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>ISP</th>
+                            <td>{{ result.geo.isp }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Organization</th>
+                            <td>{{ result.geo.organization }}</td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ================= RIGHT PANEL ================= -->
+
+            <div class="col-lg-5">
+
+
+                <!-- VirusTotal -->
+
+                <div class="chart-card mb-4">
+
+                    <h4>
+
+                        <i class="bi bi-virus"></i>
+
+                        VirusTotal Summary
+
+                    </h4>
+
+                    <hr>
+
+                    <h1 class="text-danger">
+
+                        {{ result.vt.detected }}
+
+                        /
+
+                        {{ result.vt.total }}
+
+                    </h1>
+
+                    <p>
+
+                        Detection Ratio
+
+                    </p>
+
+                    <table class="table table-dark table-sm">
+
+                        <tr>
+
+                            <th>Harmless</th>
+
+                            <td>{{ result.vt.harmless }}</td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Suspicious</th>
+
+                            <td>{{ result.vt.suspicious }}</td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Malicious</th>
+
+                            <td>{{ result.vt.malicious }}</td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+
+                <!-- AbuseIPDB -->
+
+
+                <div class="chart-card mb-4">
+
+                    <h4>
+
+                        <i class="bi bi-shield-exclamation"></i>
+
+                        AbuseIPDB
+
+                    </h4>
+
+                    <hr>
+
+                    <table class="table table-dark">
+
+                        <tr>
+
+                            <th>Confidence Score</th>
+
+                            <td>
+
+                                {{ result.abuse.score }}%
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Total Reports</th>
+
+                            <td>
+
+                                {{ result.abuse.reports }}
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Last Reported</th>
+
+                            <td>
+
+                                {{ result.abuse.last_report }}
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+
+
+                <!-- SHODAN -->
+
+
+                <div class="chart-card mb-4">
+
+                    <h4>
+
+                        <i class="bi bi-hdd-network"></i>
+
+                        Shodan Summary
+
+                    </h4>
+
+                    <hr>
+
+                    <table class="table table-dark">
+
+                        <tr>
+
+                            <th>Open Ports</th>
+
+                            <td>
+
+                                {{ result.shodan.ports }}
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Operating System</th>
+
+                            <td>
+
+                                {{ result.shodan.os }}
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Hostnames</th>
+
+                            <td>
+
+                                {{ result.shodan.hostname }}
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+                <div class="row">
+
+            <div class="col-lg-6">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-diagram-3"></i>
+                            MITRE ATT&CK Mapping
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover">
+                        <tr>
+                            <th width="220">Technique ID</th>
+                            <td>{{ result.mitre_id }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Technique Name</th>
+                            <td>{{ result.mitre_name }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Tactic</th>
+                            <td>{{ result.mitre.tactic }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ result.mitre.description }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Mitigation</th>
+                            <td>{{ result.mitre.mitigation }}</td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-6">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-link-45deg"></i>
+                            Related Indicators
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover">
+                        <tr>
+                            <th width="220">Related IP</th>
+                            <td>{{ result.related.related_ip }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Related Domain</th>
+                            <td>{{ result.related.related_domain }}</td>
+                        </tr>
+
+                        <tr>
+                            <th>Related Hash</th>
+                            <td style="font-size:12px;">
+                                {{ result.related.related_hash }}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Campaign</th>
+                            <td>{{ result.related.campaign }}</td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="pro-panel mb-4">
+
+            <div class="pro-title">
+                <h3>
+                    <i class="bi bi-virus2"></i>
+                    Detection Engines
+                </h3>
+            </div>
+
+            <div class="row">
+
+                {% for engine in result.engines %}
+                <div class="col-md-3 mb-3">
+                    <div class="chart-card" style="height:120px;">
+                        <h4>{{ engine.name }}</h4>
+                        <p>{{ engine.category }}</p>
+
+                        {% if engine.result == "Detected" %}
+                        <span class="badge bg-danger">Detected</span>
+                        {% elif engine.result == "Suspicious" %}
+                        <span class="badge bg-warning text-dark">Suspicious</span>
+                        {% else %}
+                        <span class="badge bg-success">Clean</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-7">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-clock-history"></i>
+                            Detection Timeline
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover">
+                        {% for event in result.timeline %}
+                        <tr>
+                            <th width="180">{{ event.time }}</th>
+                            <td>{{ event.event }}</td>
+                            <td>
+                                {% if event.level == "Critical" %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif event.level == "High" %}
+                                <span class="badge bg-warning text-dark">High</span>
+                                {% elif event.level == "Medium" %}
+                                <span class="badge bg-info">Medium</span>
+                                {% else %}
+                                <span class="badge bg-success">Low</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-shield-check"></i>
+                            Recommended Action
+                        </h3>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        {{ result.recommendation }}
+                    </div>
+
+                    <ul class="text-secondary">
+                        <li>Add IOC to blocklist if severity is High or Critical.</li>
+                        <li>Check firewall, proxy and authentication logs.</li>
+                        <li>Search for related IOCs across endpoints.</li>
+                        <li>Escalate to SOC analyst if repeated activity is found.</li>
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </main>
+
+</div>
+
+{% endblock %}

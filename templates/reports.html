@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="pro-layout">
+    <aside class="pro-sidebar">
+        <div class="pro-brand">
+            <div class="pro-logo">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+                <h2>CTICD</h2>
+                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+            </div>
+        </div>
+
+        <div class="pro-menu">
+            <a href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
+            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
+            <a href="{{ url_for('threat_map') }}"><i class="bi bi-globe2"></i> Threat Map</a>
+            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
+            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
+            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
+            <a href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
+            <a class="active" href="{{ url_for('reports') }}"><i class="bi bi-file-earmark-text"></i> Reports</a>
+            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
+        </div>
+
+        <div class="pro-system">
+            <h5>Report Engine</h5>
+            <p class="green">● Report Generator Online</p>
+            <hr>
+            <p>Generated</p>
+            <h6>{{ report.generated_at }}</h6>
+            <p>Report ID</p>
+            <h6>{{ report.report_id }}</h6>
+        </div>
+    </aside>
+
+    <main class="pro-main">
+        <div class="pro-top">
+            <div>
+                <h1>Threat Intelligence Report</h1>
+                <p>Executive Security Summary</p>
+            </div>
+            <div>
+                <button class="btn cyber-btn" onclick="printReport()">
+                    <i class="bi bi-printer"></i> Print Report
+                </button>
+            </div>
+        </div>
+
+        <div class="pro-stats">
+            <div class="pro-card danger">
+                <p>Overall Risk</p>
+                <h2>{{ report.overall_risk }}</h2>
+                <small>Security Posture</small>
+                <b>{{ report.risk_score }}/100</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Total Alerts</p>
+                <h2>{{ report.total_alerts }}</h2>
+                <small>Last 24 Hours</small>
+                <b>Tracked</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Malicious IPs</p>
+                <h2>{{ report.malicious_ips }}</h2>
+                <small>Detected</small>
+                <b>Active</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>IOC Detected</p>
+                <h2>{{ report.ioc_detected }}</h2>
+                <small>Correlated</small>
+                <b>Mapped</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card danger">
+                <p>Critical CVEs</p>
+                <h2>{{ report.critical_cves }}</h2>
+                <small>Pending Patch</small>
+                <b>Urgent</b>
+                <div class="spark"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="pro-panel mb-4">
+                    <div class="pro-title">
+                        <h3><i class="bi bi-card-text"></i> Executive Summary</h3>
+                    </div>
+                    <p class="text-secondary">{{ report.summary }}</p>
+                    <table class="table table-dark table-hover">
+                        <tr>
+                            <th width="220">Report ID</th>
+                            <td>{{ report.report_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Generated At</th>
+                            <td>{{ report.generated_at }}</td>
+                        </tr>
+                        <tr>
+                            <th>Overall Risk</th>
+                            <td>
+                                {% if report.overall_risk == "Critical" %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif report.overall_risk == "High" %}
+                                <span class="badge bg-warning text-dark">High</span>
+                                {% elif report.overall_risk == "Medium" %}
+                                <span class="badge bg-info">Medium</span>
+                                {% else %}
+                                <span class="badge bg-success">Low</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Risk Score</th>
+                            <td>{{ report.risk_score }}/100</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="chart-card mb-4" style="height:auto;">
+                    <h4><i class="bi bi-speedometer2"></i> Risk Meter</h4>
+                    <hr>
+                    <h1 class="text-danger" style="font-size:64px;">{{ report.risk_score }}</h1>
+                    <p>Overall Risk Score</p>
+                    <div class="progress" style="height:14px;background:#020617;">
+                        <div class="progress-bar bg-danger" role="progressbar" data-risk="{{ report.risk_score }}"></div>
+                    </div>
+                    <br>
+                    <p class="text-secondary">Higher score indicates higher threat exposure and investigation priority.</p>
+                </div>
+            </div>
+        </div>
+                <div class="row">
+
+            <div class="col-lg-4">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-person-badge"></i>
+                            Top Threat Actor
+                        </h3>
+                    </div>
+
+                    <h2 class="text-danger">
+                        {{ report.top_actor }}
+                    </h2>
+
+                    <p class="text-secondary">
+                        Most frequently correlated threat actor identified during
+                        the analysis period.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-bug"></i>
+                            Top Malware
+                        </h3>
+                    </div>
+
+                    <h2 class="text-warning">
+                        {{ report.top_malware }}
+                    </h2>
+
+                    <p class="text-secondary">
+                        Malware family with the highest detection frequency.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Top CVE
+                        </h3>
+                    </div>
+
+                    <h2 class="text-info">
+                        {{ report.top_cve }}
+                    </h2>
+
+                    <p class="text-secondary">
+                        Highest priority vulnerability requiring immediate action.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-7">
+
+                <div class="pro-panel mb-4">
+
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-clock-history"></i>
+                            Recent Security Events
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Source</th>
+                                <th>Target</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        {% for event in report.events %}
+
+                            <tr>
+
+                                <td>{{ event.time }}</td>
+
+                                <td>{{ event.type }}</td>
+
+                                <td>
+
+                                    {% if event.severity == "Critical" %}
+
+                                        <span class="badge bg-danger">
+                                            Critical
+                                        </span>
+
+                                    {% elif event.severity == "High" %}
+
+                                        <span class="badge bg-warning text-dark">
+                                            High
+                                        </span>
+
+                                    {% elif event.severity == "Medium" %}
+
+                                        <span class="badge bg-info">
+                                            Medium
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-success">
+                                            Low
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>{{ event.source }}</td>
+
+                                <td>{{ event.target }}</td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+                        <div class="col-lg-5">
+                <div class="pro-panel mb-4">
+                    <div class="pro-title">
+                        <h3><i class="bi bi-shield-check"></i> Recommendations</h3>
+                    </div>
+
+                    <ul class="text-secondary">
+                        {% for rec in report.recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="pro-panel mb-4">
+                    <div class="pro-title">
+                        <h3><i class="bi bi-check-circle"></i> Report Status</h3>
+                    </div>
+
+                    <table class="table table-dark table-hover">
+                        <tr>
+                            <th>IOC Correlation</th>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <th>Malware Review</th>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <th>CVE Intelligence</th>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <th>MITRE Mapping</th>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="pro-panel mb-4">
+            <div class="pro-title">
+                <h3><i class="bi bi-bar-chart-line"></i> Executive Conclusion</h3>
+            </div>
+
+            <div class="alert alert-danger">
+                <h5>Security Assessment</h5>
+                <p class="mb-2">
+                    Based on the collected threat intelligence, IOC correlation,
+                    malware analysis and vulnerability assessment, the organization
+                    is currently operating under a
+                    <strong>{{ report.overall_risk }}</strong>
+                    threat posture with an overall risk score of
+                    <strong>{{ report.risk_score }}/100</strong>.
+                </p>
+
+                <p class="mb-0">
+                    Immediate action is recommended for Critical vulnerabilities,
+                    malicious indicators and high-confidence threat actor activity.
+                </p>
+            </div>
+        </div>
+            </main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const bar = document.querySelector(".progress-bar");
+
+    if (bar) {
+
+        const value = parseInt(bar.dataset.risk) || 0;
+
+        bar.style.width = value + "%";
+        bar.setAttribute("aria-valuenow", value);
+
+        bar.classList.remove(
+            "bg-danger",
+            "bg-warning",
+            "bg-info",
+            "bg-success"
+        );
+
+        if (value >= 85) {
+
+            bar.classList.add("bg-danger");
+
+        } else if (value >= 70) {
+
+            bar.classList.add("bg-warning");
+
+        } else if (value >= 40) {
+
+            bar.classList.add("bg-info");
+
+        } else {
+
+            bar.classList.add("bg-success");
+
+        }
+    }
+
+});
+
+function printReport() {
+
+    window.print();
+
+}
+</script>
+
+{% endblock %}

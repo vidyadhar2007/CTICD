@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+window.MAP_KEY = "{{ MAP_KEY }}";
+window.THREAT_MAP_PAGE = true;
+</script>
+
+<div class="pro-layout">
+
+    <aside class="pro-sidebar">
+        <div class="pro-brand">
+            <div class="pro-logo">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+                <h2>CTICD</h2>
+                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+            </div>
+        </div>
+
+        <div class="pro-menu">
+            <a href="{{ url_for('dashboard') }}">
+                <i class="bi bi-house-door-fill"></i> Dashboard
+            </a>
+
+            <a href="{{ url_for('ioc_search') }}">
+                <i class="bi bi-search"></i> IOC Search
+            </a>
+
+            <a class="active" href="{{ url_for('threat_map') }}">
+                <i class="bi bi-globe2"></i> Threat Map
+            </a>
+
+            <a href="{{ url_for('threat_feed') }}">
+                <i class="bi bi-broadcast"></i> Threat Feed
+            </a>
+
+            <a href="{{ url_for('correlation_engine') }}">
+                <i class="bi bi-diagram-3"></i> Correlation Engine
+            </a>
+
+            <a href="{{ url_for('malware_analysis') }}">
+                <i class="bi bi-bug"></i> Malware Analysis
+            </a>
+
+            <a href="{{ url_for('cve_explorer') }}">
+                <i class="bi bi-exclamation-triangle"></i> CVE Explorer
+            </a>
+
+            <a href="{{ url_for('reports') }}">
+                <i class="bi bi-file-earmark-text"></i> Reports
+            </a>
+
+            <a href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+
+        <div class="pro-system">
+            <h5>Threat Map Status</h5>
+            <p class="green">● Live Map Online</p>
+            <hr>
+            <p>Geo Intelligence</p>
+            <h6>Enabled</h6>
+            <p>Attack Simulation</p>
+            <h6>Real-time</h6>
+            <p>Refresh Rate</p>
+            <h6>3 seconds</h6>
+        </div>
+    </aside>
+
+    <main class="pro-main">
+
+        <div class="pro-top">
+            <div>
+                <h1>Global Threat Map</h1>
+                <p>Full-screen live cyber attack visualization with source, target, IOC and MITRE context</p>
+            </div>
+
+            <div class="pro-profile">
+                <div class="pro-bell">
+                    <i class="bi bi-bell"></i>
+                    <span>12</span>
+                </div>
+
+                <i class="bi bi-moon"></i>
+
+                <div class="pro-user">
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <div>
+                    <strong>{{ current_user.name }}</strong>
+                    <p>Threat Analyst</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pro-stats">
+
+            <div class="pro-card danger">
+                <p>Live Attacks</p>
+                <h2 id="mapLiveAttacks">0</h2>
+                <small>Current session</small>
+                <b>LIVE</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card danger">
+                <p>Critical</p>
+                <h2 id="mapCriticalCount">0</h2>
+                <small>High urgency</small>
+                <b>Alert</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Countries</p>
+                <h2 id="mapCountryCount">0</h2>
+                <small>Observed targets</small>
+                <b>Tracked</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Top Technique</p>
+                <h2 style="font-size:24px;" id="mapTopTechnique">T1110</h2>
+                <small>MITRE ATT&CK</small>
+                <b>Mapped</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card danger">
+                <p>Risk Score</p>
+                <h2 id="mapRiskScore">92</h2>
+                <small>Global risk</small>
+                <b>/100</b>
+                <div class="spark"></div>
+            </div>
+
+        </div>
+
+        <div class="pro-grid">
+
+            <section class="pro-panel">
+                <div class="pro-title">
+                    <div>
+                        <h3>
+                            LIVE GLOBAL ATTACK MAP
+                            <span class="live">● LIVE</span>
+                        </h3>
+                        <p>Animated cyber attacks from source to destination</p>
+                    </div>
+
+                    <select id="attackTypeFilter">
+                        <option value="all">All Attack Types</option>
+                        <option value="Brute Force Attack">Brute Force</option>
+                        <option value="DDoS Attack">DDoS</option>
+                        <option value="Malware Beaconing">Malware</option>
+                        <option value="Phishing Campaign">Phishing</option>
+                        <option value="SQL Injection Attempt">SQL Injection</option>
+                    </select>
+                </div>
+
+                <div class="real-map-box threat-map-large">
+                    <div id="realCyberMap"></div>
+
+                    <div class="legend">
+                        <h5>Attack Intensity</h5>
+                        <p><i class="r"></i>Critical</p>
+                        <p><i class="o"></i>High</p>
+                        <p><i class="y"></i>Medium</p>
+                        <p><i class="g"></i>Low</p>
+                    </div>
+
+                    <div class="attackbox">
+                        <h5>LIVE ATTACK</h5>
+                        <p><b>From:</b> <span id="liveFrom">Loading...</span></p>
+                        <p><b>To:</b> <span id="liveTo">Loading...</span></p>
+                        <p><b>Type:</b> <span id="liveType">Loading...</span></p>
+                        <p><b>MITRE:</b> <span id="liveMitre">Loading...</span></p>
+                        <p><b>Time:</b> <span id="liveTime">Loading...</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="pro-panel">
+                <div class="pro-title">
+                    <h3>LIVE ATTACK STREAM</h3>
+                    <a href="{{ url_for('threat_feed') }}">View Feed</a>
+                </div>
+
+                <div id="alertList"></div>
+
+                <br>
+                <a href="{{ url_for('correlation_engine') }}">Open Correlation Engine →</a>
+            </section>
+
+        </div>
+
+    </main>
+</div>
+
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="pro-layout">
+
+    <aside class="pro-sidebar">
+        <div class="pro-brand">
+            <div class="pro-logo">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+                <h2>CTICD</h2>
+                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+            </div>
+        </div>
+
+        <div class="pro-menu">
+            <a href="{{ url_for('dashboard') }}">
+                <i class="bi bi-house-door-fill"></i> Dashboard
+            </a>
+
+            <a href="{{ url_for('ioc_search') }}">
+                <i class="bi bi-search"></i> IOC Search
+            </a>
+
+            <a href="#">
+                <i class="bi bi-globe2"></i> Threat Map
+            </a>
+
+            <a class="active" href="{{ url_for('threat_feed') }}">
+                <i class="bi bi-broadcast"></i> Threat Feed
+            </a>
+
+            <a href="#">
+                <i class="bi bi-diagram-3"></i> Correlation Engine
+            </a>
+
+            <a href="#">
+                <i class="bi bi-bug"></i> Malware Analysis
+            </a>
+
+            <a href="#">
+                <i class="bi bi-exclamation-triangle"></i> CVE Explorer
+            </a>
+
+            <a href="#">
+                <i class="bi bi-file-earmark-text"></i> Reports
+            </a>
+
+            <a href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-left"></i> Logout
+            </a>
+        </div>
+
+        <div class="pro-system">
+            <h5>Threat Feed Status</h5>
+            <p class="green">● Feed Engine Online</p>
+            <hr>
+            <p>Active Sources</p>
+            <h6>9 / 9 Active</h6>
+            <p>Last Refresh</p>
+            <h6>{{ current_time }}</h6>
+        </div>
+    </aside>
+
+    <main class="pro-main">
+
+        <div class="pro-top">
+            <div>
+                <h1>Live Threat Feed</h1>
+                <p>Real-time simulated OSINT, IOC, MITRE and attack intelligence feed</p>
+            </div>
+
+            <div class="pro-profile">
+                <div class="pro-bell">
+                    <i class="bi bi-bell"></i>
+                    <span>{{ stats.critical + stats.high }}</span>
+                </div>
+
+                <i class="bi bi-moon"></i>
+
+                <div class="pro-user">
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <div>
+                    <strong>{{ current_user.name }}</strong>
+                    <p>Threat Analyst</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="pro-stats">
+
+            <div class="pro-card danger">
+                <p>Total Events</p>
+                <h2>{{ stats.total }}</h2>
+                <small>Latest feed batch</small>
+                <b>LIVE</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card danger">
+                <p>Critical</p>
+                <h2>{{ stats.critical }}</h2>
+                <small>Immediate action</small>
+                <b>High Risk</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>High</p>
+                <h2>{{ stats.high }}</h2>
+                <small>Priority monitoring</small>
+                <b>Active</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Actors</p>
+                <h2>{{ stats.active_actors }}</h2>
+                <small>Threat groups observed</small>
+                <b>Tracked</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Confidence</p>
+                <h2>{{ stats.avg_confidence }}%</h2>
+                <small>Average confidence</small>
+                <b>CTICD</b>
+                <div class="spark"></div>
+            </div>
+
+        </div>
+
+        <div class="pro-panel mb-4">
+
+            <div class="pro-title">
+                <div>
+                    <h3>
+                        <i class="bi bi-broadcast-pin"></i>
+                        Intelligence Stream
+                        <span class="live">● LIVE</span>
+                    </h3>
+                    <p>Correlated events from OSINT, malware, IOC, CVE and network telemetry</p>
+                </div>
+
+                <div>
+                    <button class="btn cyber-btn btn-sm" onclick="window.location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Refresh Feed
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Severity</th>
+                            <th>Threat Event</th>
+                            <th>Actor</th>
+                            <th>Source → Target</th>
+                            <th>Indicator</th>
+                            <th>MITRE</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in feed %}
+                        <tr>
+                            <td>
+                                <b>{{ item.time }}</b>
+                                <br>
+                                <small class="text-secondary">{{ item.date }}</small>
+                            </td>
+
+                            <td>
+                                {% if item.severity == "Critical" %}
+                                <span class="badge bg-danger">Critical</span>
+                                {% elif item.severity == "High" %}
+                                <span class="badge bg-warning text-dark">High</span>
+                                {% elif item.severity == "Medium" %}
+                                <span class="badge bg-info">Medium</span>
+                                {% else %}
+                                <span class="badge bg-success">Low</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <b>{{ item.event_type }}</b>
+                                <br>
+                                <small class="text-secondary">{{ item.summary }}</small>
+                            </td>
+
+                            <td>{{ item.actor }}</td>
+
+                            <td>
+                                {{ item.source_country }}
+                                <span class="text-info">→</span>
+                                {{ item.target_country }}
+                                <br>
+                                <small class="text-secondary">{{ item.source_ip }}</small>
+                            </td>
+
+                            <td>
+                                <code>{{ item.indicator }}</code>
+                            </td>
+
+                            <td>
+                                <b>{{ item.mitre_id }}</b>
+                                <br>
+                                <small class="text-secondary">{{ item.mitre_name }}</small>
+                            </td>
+
+                            <td>
+                                {{ item.confidence }}%
+                            </td>
+
+                            <td>
+                                {{ item.status }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="pro-panel mb-4">
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-shield-exclamation"></i>
+                            High Priority Summary
+                        </h3>
+                    </div>
+
+                    <ul class="text-secondary">
+                        <li>Review Critical and High events first.</li>
+                        <li>Correlate indicators with firewall and endpoint telemetry.</li>
+                        <li>Block malicious indicators if confirmed.</li>
+                        <li>Escalate ransomware and exploit-related events to SOC team.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="pro-panel mb-4">
+                    <div class="pro-title">
+                        <h3>
+                            <i class="bi bi-diagram-3"></i>
+                            Feed Sources
+                        </h3>
+                    </div>
+
+                    <table class="table table-dark">
+                        <tr>
+                            <th>OSINT Feed</th>
+                            <td>Active</td>
+                        </tr>
+                        <tr>
+                            <th>IOC Reputation</th>
+                            <td>Active</td>
+                        </tr>
+                        <tr>
+                            <th>MITRE Mapping</th>
+                            <td>Active</td>
+                        </tr>
+                        <tr>
+                            <th>CVE Intelligence</th>
+                            <td>Active</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+{% endblock %}

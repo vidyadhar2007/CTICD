@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+window.MAP_KEY = "{{ MAP_KEY }}";
+</script>
+
+<div class="pro-layout">
+    <aside class="pro-sidebar">
+        <div class="pro-brand">
+            <div class="pro-logo">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+                <h2>CTICD</h2>
+                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+            </div>
+        </div>
+
+        <div class="pro-menu">
+            <a class="active" href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
+            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
+            <a href="{{ url_for('threat_map') }}"><i class="bi bi-globe2"></i> Threat Map</a>
+            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
+            <a href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
+            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
+            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
+            <a href="{{ url_for('reports') }}"><i class="bi bi-file-earmark-text"></i> Reports</a>
+            <a href="{{ url_for('profile') }}"><i class="bi bi-person-circle"></i> Profile</a>
+            <a href="{{ url_for('alerts') }}"><i class="bi bi-bell"></i> Alerts</a>
+            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
+        </div>
+
+        <div class="pro-system">
+            <h5>System Status</h5>
+            <p class="green">● All Systems Operational</p>
+            <hr>
+            <p>Threat Intelligence Feeds</p>
+            <h6>9 / 9 Active</h6>
+            <p>Last Data Update</p>
+            <h6 id="systemTime">Loading...</h6>
+            <p>Server Uptime</p>
+            <h6>2d 14h 32m</h6>
+        </div>
+    </aside>
+
+    <main class="pro-main">
+        <div class="pro-top">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Real-time Cyber Threat Intelligence Overview</p>
+            </div>
+
+            <div class="dropdown">
+                <a class="d-flex align-items-center gap-3 text-decoration-none text-light dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                    <div class="pro-user">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div>
+                        <strong>{{ current_user.name }}</strong>
+                        <p class="mb-0">Security Analyst</p>
+                    </div>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('profile') }}">
+                            <i class="bi bi-person-circle"></i> My Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('edit_profile') }}">
+                            <i class="bi bi-pencil-square"></i> Edit Profile
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+                <div class="pro-stats">
+            <div class="pro-card danger">
+                <p>Threat Level</p>
+                <h2>{{ stats.threat_level }}</h2>
+                <small>Overall Risk Score</small>
+                <b>{{ stats.risk_score }} / 100</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Live Attacks</p>
+                <h2 id="liveAttackCount">{{ stats.live_attacks }}</h2>
+                <small>Last 24 Hours</small>
+                <b>↑ 23.7%</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Malicious IPs</p>
+                <h2 id="maliciousIpCount">{{ stats.malicious_ips }}</h2>
+                <small>Last 24 Hours</small>
+                <b>↑ 15.3%</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>IOC Detected</p>
+                <h2 id="iocCount">{{ stats.ioc_detected }}</h2>
+                <small>Last 24 Hours</small>
+                <b>↑ 31.8%</b>
+                <div class="spark"></div>
+            </div>
+
+            <div class="pro-card success">
+                <p>Countries Attacked</p>
+                <h2 id="countryCount">{{ stats.countries_attacked }}</h2>
+                <small>Last 24 Hours</small>
+                <b>↑ 8.6%</b>
+                <div class="spark"></div>
+            </div>
+        </div>
+
+        <div class="pro-grid">
+            <section class="pro-panel">
+                <div class="pro-title">
+                    <div>
+                        <h3>LIVE CYBER THREAT MAP <span class="live">● LIVE</span></h3>
+                        <p>Real-time source to target attack visualization</p>
+                    </div>
+                    <select>
+                        <option>All Attack Types</option>
+                        <option>DDoS</option>
+                        <option>Malware</option>
+                        <option>Brute Force</option>
+                        <option>Phishing</option>
+                    </select>
+                </div>
+
+                <div class="real-map-box">
+                    <div id="realCyberMap"></div>
+
+                    <div class="legend">
+                        <h5>Attack Intensity</h5>
+                        <p><i class="r"></i>Critical</p>
+                        <p><i class="o"></i>High</p>
+                        <p><i class="y"></i>Medium</p>
+                        <p><i class="g"></i>Low</p>
+                    </div>
+
+                    <div class="attackbox">
+                        <h5>LIVE ATTACK</h5>
+                        <p><b>From:</b> <span id="liveFrom">Loading...</span></p>
+                        <p><b>To:</b> <span id="liveTo">Loading...</span></p>
+                        <p><b>Type:</b> <span id="liveType">Loading...</span></p>
+                        <p><b>Time:</b> <span id="liveTime">Loading...</span></p>
+                    </div>
+                </div>
+            </section>
+                        <section class="pro-panel">
+                <div class="pro-title">
+                    <h3>RECENT ALERTS</h3>
+                    <a href="{{ url_for('threat_feed') }}">View All</a>
+                </div>
+
+                <div id="alertList">
+                    {% for alert in recent_alerts %}
+                    <div class="alert-item">
+                        <div class="dot {{ alert.level }}"></div>
+
+                        <div>
+                            <h5>{{ alert.type }}</h5>
+                            <p>{{ alert.from }} → {{ alert.to }}</p>
+                        </div>
+
+                        <span>{{ alert.time }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <br>
+
+                <a href="{{ url_for('threat_feed') }}">
+                    View All Alerts →
+                </a>
+            </section>
+        </div>
+
+        <div class="bottom">
+
+            <div class="chart-card">
+                <h4>Top Attack Origins</h4>
+                <p>Last 24 Hours</p>
+                <canvas id="originChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h4>Threat Types Distribution</h4>
+                <p>Last 24 Hours</p>
+                <canvas id="typeChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <h4>Top Malicious IPs</h4>
+                <p>Last 24 Hours</p>
+
+                {% for item in malicious_ips %}
+                <div class="ip-row">
+                    <span>{{ item.ip }}</span>
+                    <span>{{ item.country }}</span>
+                    <b>{{ item.hits }}</b>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="chart-card">
+                <h4>Threat Level Over Time</h4>
+                <p>Last 7 Days</p>
+                <canvas id="lineChart"></canvas>
+            </div>
+
+        </div>
+            </main>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+
+    const profileBtn=document.querySelector(".dropdown-toggle");
+
+    if(profileBtn){
+        profileBtn.addEventListener("click",function(e){
+            e.preventDefault();
+        });
+    }
+
+    const systemTime=document.getElementById("systemTime");
+
+    function updateClock(){
+        const now=new Date();
+
+        systemTime.innerHTML=now.toLocaleTimeString("en-IN",{
+            hour:"2-digit",
+            minute:"2-digit",
+            second:"2-digit"
+        });
+    }
+
+    updateClock();
+    setInterval(updateClock,1000);
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2 class="text-center mb-2">Cyber Threat Intelligence</h2>
+        <p class="text-center text-secondary mb-4">
+            Secure Analyst Login
+        </p>
+
+        <form method="POST">
+            <div class="mb-3">
+                <label>Email Address</label>
+                <input type="email" name="email" class="form-control cyber-input" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control cyber-input" required>
+            </div>
+
+            <button class="btn cyber-btn w-100 mt-2">
+                Login
+            </button>
+        </form>
+
+        <p class="text-center mt-3">
+            New analyst?
+            <a href="{{ url_for('signup') }}">Create account</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}
