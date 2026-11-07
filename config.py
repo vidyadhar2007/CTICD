@@ -4,10 +4,23 @@ import os
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "CTICD@2026_Enterprise_SOC_Key_Secured")
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL",
-        "sqlite:///" + os.path.join(BASE_DIR, "instance", "cticd.db")
-    )
+    
+    # Vercel Serverless filesystem adaptation (writes permitted only in /tmp)
+    if os.getenv("VERCEL"):
+        _db_path = "/tmp/cticd.db"
+        _orig_db = os.path.join(BASE_DIR, "instance", "cticd.db")
+        if os.path.exists(_orig_db) and not os.path.exists(_db_path):
+            try:
+                import shutil
+                shutil.copy2(_orig_db, _db_path)
+            except Exception:
+                pass
+        SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{_db_path}")
+    else:
+        SQLALCHEMY_DATABASE_URI = os.getenv(
+            "DATABASE_URL",
+            "sqlite:///" + os.path.join(BASE_DIR, "instance", "cticd.db")
+        )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     DASHBOARD_NAME = "Cyber Threat Intelligence Correlation Dashboard"

@@ -31,7 +31,11 @@ from threat_engine import ThreatEngine
 app = Flask(__name__)
 app.config.from_object(Config)
 
-os.makedirs(os.path.join(app.root_path, "instance"), exist_ok=True)
+try:
+    if not os.getenv("VERCEL"):
+        os.makedirs(os.path.join(app.root_path, "instance"), exist_ok=True)
+except Exception:
+    pass
 db.init_app(app)
 
 login_manager = LoginManager()
