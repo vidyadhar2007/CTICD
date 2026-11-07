@@ -2,116 +2,529 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CTICD - Cyber Threat Intelligence Dashboard</title>
-
+    <title>CTICD — Cyber Threat Intelligence Operations Command</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
+    <!-- MapLibre GL CSS -->
     <link href="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.css" rel="stylesheet">
-
+    <!-- Vis.js Network CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" rel="stylesheet">
+    <!-- Custom Cyber Dark Theme Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark cyber-navbar">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{{ url_for('dashboard') }}">
-            <i class="bi bi-shield-lock-fill"></i>
-            CTICD Dashboard
-        </a>
+{% if current_user.is_authenticated %}
+<div class="master-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="master-sidebar" id="masterSidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-shield-shaded"></i>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">CTICD SOC</span>
+                <span class="brand-subtitle">THREAT DEFENSE v2.5</span>
+            </div>
+        </div>
 
-        <div class="d-flex">
-            {% if current_user.is_authenticated %}
-                <span class="navbar-text me-3">
-                    {{ current_user.name }} | {{ current_user.role }}
-                </span>
+        <nav class="sidebar-nav">
+            <p class="nav-section-title">Operations</p>
+            <a href="{{ url_for('dashboard') }}" class="nav-link-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Operations Center</span>
+            </a>
+            <a href="{{ url_for('threat_map') }}" class="nav-link-item {% if request.endpoint == 'threat_map' %}active{% endif %}">
+                <i class="bi bi-globe2"></i>
+                <span>Global Threat Map</span>
+            </a>
+            <a href="{{ url_for('threat_feed') }}" class="nav-link-item {% if request.endpoint == 'threat_feed' %}active{% endif %}">
+                <i class="bi bi-broadcast-pin"></i>
+                <span>Live Threat Feed</span>
+            </a>
 
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">
-                    Logout
+            <p class="nav-section-title">Intelligence Engines</p>
+            <a href="{{ url_for('correlation_engine') }}" class="nav-link-item {% if request.endpoint == 'correlation_engine' %}active{% endif %}">
+                <i class="bi bi-diagram-3-fill"></i>
+                <span>Correlation Engine</span>
+            </a>
+            <a href="{{ url_for('ioc_search') }}" class="nav-link-item {% if request.endpoint == 'ioc_search' %}active{% endif %}">
+                <i class="bi bi-search"></i>
+                <span>IOC Search & OSINT</span>
+            </a>
+            <a href="{{ url_for('cve_explorer') }}" class="nav-link-item {% if request.endpoint == 'cve_explorer' %}active{% endif %}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>CVE Explorer</span>
+            </a>
+            <a href="{{ url_for('malware_analysis') }}" class="nav-link-item {% if request.endpoint == 'malware_analysis' %}active{% endif %}">
+                <i class="bi bi-bug-fill"></i>
+                <span>Malware Sandbox</span>
+            </a>
+
+            <p class="nav-section-title">Incidents & Reporting</p>
+            <a href="{{ url_for('alerts') }}" class="nav-link-item {% if request.endpoint == 'alerts' %}active{% endif %}">
+                <i class="bi bi-bell-fill"></i>
+                <span>SOC Alert Center</span>
+            </a>
+            <a href="{{ url_for('reports') }}" class="nav-link-item {% if request.endpoint == 'reports' %}active{% endif %}">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                <span>Executive Reports</span>
+            </a>
+
+            <p class="nav-section-title">Operator</p>
+            <a href="{{ url_for('profile') }}" class="nav-link-item {% if request.endpoint == 'profile' %}active{% endif %}">
+                <i class="bi bi-person-badge-fill"></i>
+                <span>Analyst Profile</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-link-item text-danger">
+                <i class="bi bi-box-arrow-left"></i>
+                <span>Terminate Session</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-status-box">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="small text-muted font-monospace">INGESTION GRID</span>
+                    <span class="status-dot"></span>
+                </div>
+                <div class="small fw-bold text-success">ALL SENSORS NOMINAL</div>
+                <div class="text-secondary" style="font-size:10px;">LATENCY: 14ms | TLP:AMBER</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Master Main Wrapper -->
+    <div class="master-main">
+        <!-- Top Navigation Bar -->
+        <header class="master-topbar">
+            <div class="topbar-left">
+                <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle navigation">
+                    <i class="bi bi-list"></i>
+                </button>
+                <form class="global-search-form" action="{{ url_for('global_search') }}" method="GET">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="q" class="form-control global-search-input" placeholder="Search IP, Domain, Hash, CVE, Actor (e.g. 185.220.101.45)..." autocomplete="off" required>
+                    <button type="button" class="search-kbd-badge d-none d-md-inline-flex" onclick="openCommandPalette()" title="Open Spotlight Command Palette (Ctrl + K)">
+                        Ctrl K
+                    </button>
+                </form>
+            </div>
+
+            <div class="topbar-right">
+                <!-- Interactive DEFCON Dropdown -->
+                <div class="dropdown">
+                    <div class="threat-pill defcon-badge-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Click to Change DEFCON Condition">
+                        <span class="status-dot" id="topbarDefconDot" style="background:#ef4444;box-shadow:0 0 8px #ef4444;"></span>
+                        <span id="topbarDefconLabel">DEFCON 2 / ELEVATED</span>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow border border-secondary border-opacity-25" style="background:#0f172a; font-size:12px;">
+                        <li><h6 class="dropdown-header text-muted">DEFCON ALERT LEVEL</h6></li>
+                        <li><a class="dropdown-item text-danger fw-bold" href="javascript:void(0)" onclick="setDefcon(1)"><i class="bi bi-radioactive me-2"></i> DEFCON 1 — MAXIMUM ALERT</a></li>
+                        <li><a class="dropdown-item text-warning fw-bold" href="javascript:void(0)" onclick="setDefcon(2)"><i class="bi bi-exclamation-triangle me-2"></i> DEFCON 2 — ELEVATED</a></li>
+                        <li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="setDefcon(3)"><i class="bi bi-shield-shaded me-2"></i> DEFCON 3 — TACTICAL WATCH</a></li>
+                        <li><a class="dropdown-item text-info" href="javascript:void(0)" onclick="setDefcon(4)"><i class="bi bi-shield-check me-2"></i> DEFCON 4 — GUARDED</a></li>
+                        <li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="setDefcon(5)"><i class="bi bi-shield-fill-check me-2"></i> DEFCON 5 — NORMAL DEFENSE</a></li>
+                    </ul>
+                </div>
+
+                <!-- Theme Accent Picker -->
+                <div class="dropdown">
+                    <button class="topbar-control-btn dropdown-toggle" data-bs-toggle="dropdown" title="Change Theme Accent">
+                        <i class="bi bi-palette2 text-info"></i> <span class="d-none d-lg-inline">Theme</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow border border-secondary border-opacity-25" style="background:#0f172a; font-size:12px;">
+                        <li><h6 class="dropdown-header text-muted">ACCENT GLOW</h6></li>
+                        <li><a class="dropdown-item text-info" href="javascript:void(0)" onclick="setTheme('cyan')"><i class="bi bi-circle-fill me-2" style="color:#0ea5e9;"></i> Cyber Cyan</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="setTheme('crimson')"><i class="bi bi-circle-fill me-2" style="color:#f43f5e;"></i> Crimson Bloodline</a></li>
+                        <li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="setTheme('emerald')"><i class="bi bi-circle-fill me-2" style="color:#10b981;"></i> Matrix Emerald</a></li>
+                        <li><a class="dropdown-item" style="color:#c084fc;" href="javascript:void(0)" onclick="setTheme('violet')"><i class="bi bi-circle-fill me-2" style="color:#c084fc;"></i> Cyberpunk Violet</a></li>
+                    </ul>
+                </div>
+
+                <!-- War Room HUD CRT Mode Toggle -->
+                <button class="topbar-control-btn d-none d-md-inline-flex" onclick="toggleWarRoomMode()" title="Toggle War Room HUD Scanlines (Alt + W)">
+                    <i class="bi bi-display text-warning"></i> <span class="d-none d-lg-inline">War Room HUD</span>
+                </button>
+
+                <!-- Audio FX Toggle -->
+                <button class="topbar-control-btn" id="topbarAudioBtn" onclick="toggleAudioFx()" title="Toggle Tactical UI Audio Synthesizer (Alt + M)">
+                    <i class="bi bi-volume-mute"></i> <span class="d-none d-lg-inline">Audio</span>
+                </button>
+
+                <!-- Topbar Clock (India Standard Time) -->
+                <div class="topbar-clock d-none d-sm-flex" title="India Standard Time (IST — UTC+05:30)">
+                    <i class="bi bi-clock-history text-info"></i>
+                    <span id="clockIst">--:--:-- IST</span>
+                </div>
+
+                <!-- Keyboard Shortcuts Helper -->
+                <button class="btn btn-outline-secondary btn-sm border-0 text-light d-none d-sm-inline" onclick="new bootstrap.Modal(document.getElementById('shortcutsModal')).show()" title="Keyboard Shortcuts (?)">
+                    <i class="bi bi-keyboard fs-5"></i>
+                </button>
+
+                <!-- Alerts Bell -->
+                <a href="{{ url_for('alerts') }}" class="btn btn-outline-secondary btn-sm position-relative border-0 text-light" title="View Security Alerts">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-dark rounded-circle"></span>
                 </a>
-            {% endif %}
+
+                <!-- User Profile Dropdown -->
+                <div class="dropdown">
+                    <a href="#" class="topbar-user dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar-badge">
+                            {{ current_user.name[:1].upper() if current_user.name else 'A' }}
+                        </div>
+                        <div class="user-meta text-start d-none d-md-block">
+                            <strong>{{ current_user.name }}</strong>
+                            <span>{{ current_user.role or 'Security Analyst' }}</span>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow border border-secondary border-opacity-25" style="background:#0f172a;">
+                        <li><h6 class="dropdown-header text-info"><i class="bi bi-person-badge"></i> {{ current_user.badge_id or 'SOC-8421' }}</h6></li>
+                        <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person me-2"></i> View Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('edit_profile') }}"><i class="bi bi-pencil-square me-2"></i> Edit Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('change_password') }}"><i class="bi bi-key me-2"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                        <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash Messages Container -->
+        <div class="master-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show border border-{{ category }} border-opacity-50" style="background: rgba(15, 23, 42, 0.95); color: #fff;" role="alert">
+                                <i class="bi bi-info-circle-fill me-2 text-{{ category }}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
         </div>
     </div>
-</nav>
+</div>
 
-<div class="container-fluid main-container">
+<!-- Floating AI SOC Copilot FAB Button -->
+<button class="ai-copilot-fab" id="aiCopilotFab" title="Open AI SOC Defense Copilot (Alt + C)">
+    <i class="bi bi-shield-shaded fs-5 text-warning"></i>
+    <span>AI DEFENSE COPILOT</span>
+</button>
 
+<!-- Slide-Out AI SOC Copilot Drawer -->
+<div class="ai-copilot-drawer" id="aiCopilotDrawer">
+    <div class="ai-copilot-header">
+        <div class="d-flex align-items-center gap-2">
+            <span class="status-dot" style="background:#22c55e;box-shadow:0 0 8px #22c55e;"></span>
+            <strong class="text-white small">CTICD AI SOC DEFENSE COPILOT</strong>
+            <span class="badge bg-dark border border-secondary text-info" style="font-size:10px;">ONLINE</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 text-white" id="aiCopilotCloseBtn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- Copilot Stream Messages -->
+    <div class="ai-copilot-messages" id="aiCopilotMessages">
+        <div class="copilot-msg agent">
+            <div class="small text-muted d-flex align-items-center gap-1" style="font-size:10px;">
+                <i class="bi bi-cpu-fill text-info"></i> CTICD AI Defense Copilot
+            </div>
+            <div class="copilot-bubble">
+                Greetings, Lead Analyst. I am your automated AI CTI co-analyst connected to the live telemetry stream. Ask me to correlate threat actors, analyze active CVEs, explain current DEFCON readiness, or draft perimeter mitigation drop rules.
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Prompt Pills -->
+    <div class="copilot-quick-prompts">
+        <button type="button" class="copilot-prompt-pill" onclick="sendCopilotPrompt('Explain active DEFCON readiness')">
+            <i class="bi bi-lightning-charge-fill text-warning"></i> DEFCON Brief
+        </button>
+        <button type="button" class="copilot-prompt-pill" onclick="sendCopilotPrompt('Profile threat actor APT29 Cozy Bear')">
+            <i class="bi bi-people-fill text-danger"></i> Profile APT29
+        </button>
+        <button type="button" class="copilot-prompt-pill" onclick="sendCopilotPrompt('Analyze vulnerability CVE-2024-3094')">
+            <i class="bi bi-bug-fill text-warning"></i> CVE-2024-3094
+        </button>
+        <button type="button" class="copilot-prompt-pill" onclick="sendCopilotPrompt('Generate firewall drop rules for active C2 nodes')">
+            <i class="bi bi-terminal-fill text-success"></i> Firewall Drop Rules
+        </button>
+        <button type="button" class="copilot-prompt-pill" onclick="sendCopilotPrompt('Provide incident triage response steps')">
+            <i class="bi bi-list-check text-info"></i> Triage Playbook
+        </button>
+    </div>
+
+    <!-- Free-form Prompt Input Bar -->
+    <div class="ai-copilot-input-bar">
+        <input type="text" class="ai-copilot-input" id="aiCopilotInput" placeholder="Ask AI Copilot for threat advice, TTPs, or rules...">
+        <button type="button" class="btn cyber-btn btn-sm px-3" id="aiCopilotSendBtn">
+            <i class="bi bi-send-fill"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Spotlight Command Palette (Ctrl + K) -->
+<div class="cmd-palette-backdrop" id="commandPaletteBackdrop">
+    <div class="cmd-palette-modal">
+        <div class="cmd-palette-input-wrap">
+            <i class="bi bi-search"></i>
+            <input type="text" class="cmd-palette-input" id="commandPaletteInput" placeholder="Type a command, query an IOC, search CVE, or jump to page..." autocomplete="off">
+            <kbd class="text-muted small">ESC</kbd>
+        </div>
+
+        <div class="cmd-palette-list" id="commandPaletteList">
+            <div class="cmd-palette-group-title">Navigation & Operations</div>
+            <a href="{{ url_for('dashboard') }}" class="cmd-palette-item" data-keywords="dashboard command center telemetry kpi home">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-info"><i class="bi bi-speedometer2"></i></div>
+                    <div>
+                        <div class="fw-bold">Security Operations Command Center</div>
+                        <small class="text-muted">Real-time KPI telemetry, map overview, and attack matrix</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G D</span>
+            </a>
+            <a href="{{ url_for('threat_map') }}" class="cmd-palette-item" data-keywords="threat map live ballistic geospatial coordinates sensor">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-globe2"></i></div>
+                    <div>
+                        <div class="fw-bold">Global Threat Telemetry Map</div>
+                        <small class="text-muted">Geospatial real-time interception & ballistic trajectories</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G M</span>
+            </a>
+            <a href="{{ url_for('threat_feed') }}" class="cmd-palette-item" data-keywords="threat feed stix taxii live stream indicators osint">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-info"><i class="bi bi-broadcast-pin"></i></div>
+                    <div>
+                        <div class="fw-bold">Live STIX/TAXII Threat Feed</div>
+                        <small class="text-muted">Aggregated indicator stream with fast keyword filtering</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G F</span>
+            </a>
+            <a href="{{ url_for('correlation_engine') }}" class="cmd-palette-item" data-keywords="correlation engine graph diamond model kill chain network topology">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-warning"><i class="bi bi-diagram-3-fill"></i></div>
+                    <div>
+                        <div class="fw-bold">Multi-Entity Correlation Engine</div>
+                        <small class="text-muted">Vis.js interactive threat topology & automated defense rules</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G C</span>
+            </a>
+            <a href="{{ url_for('ioc_search') }}" class="cmd-palette-item" data-keywords="ioc search ip domain url hash osint virustotal abuseipdb">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-info"><i class="bi bi-search"></i></div>
+                    <div>
+                        <div class="fw-bold">IOC Search & Multi-Feed OSINT</div>
+                        <small class="text-muted">Inspect IP, Domain, Hash with multi-engine threat scores</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G I</span>
+            </a>
+            <a href="{{ url_for('cve_explorer') }}" class="cmd-palette-item" data-keywords="cve explorer vulnerability cvss epss cisa kev exploit snort">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div>
+                        <div class="fw-bold">CVE Vulnerability & Exploit Explorer</div>
+                        <small class="text-muted">CVSS v3.1 metrics, EPSS exploit likelihood, and CISA KEV</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G V</span>
+            </a>
+            <a href="{{ url_for('malware_analysis') }}" class="cmd-palette-item" data-keywords="malware analysis sandbox pe entropy yara redline cobalt strike lockbit">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-bug-fill"></i></div>
+                    <div>
+                        <div class="fw-bold">Malware Static & Sandbox Analysis</div>
+                        <small class="text-muted">Dissect file hashes, section entropy, and generate YARA</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G S</span>
+            </a>
+            <a href="{{ url_for('alerts') }}" class="cmd-palette-item" data-keywords="alerts soc incidents queue triage response">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-bell-fill"></i></div>
+                    <div>
+                        <div class="fw-bold">SOC Incident & Alert Queue</div>
+                        <small class="text-muted">Triage active security incidents, update status, and add notes</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G A</span>
+            </a>
+            <a href="{{ url_for('reports') }}" class="cmd-palette-item" data-keywords="reports executive ciso briefing print pdf export stix json csv">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-info"><i class="bi bi-file-earmark-text-fill"></i></div>
+                    <div>
+                        <div class="fw-bold">CISO Executive Briefing & Export Engine</div>
+                        <small class="text-muted">Print executive briefing, export STIX 2.1 bundles, CSV, and JSON</small>
+                    </div>
+                </div>
+                <span class="badge bg-dark text-muted">G R</span>
+            </a>
+
+            <div class="cmd-palette-group-title">Fast Sample Detonations</div>
+            <a href="{{ url_for('ioc_search', ioc='185.220.101.45') }}" class="cmd-palette-item" data-keywords="185.220.101.45 malicious ip c2 node">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-hdd-network-fill"></i></div>
+                    <div><strong>Inspect 185.220.101.45</strong> <small class="text-muted">(Malicious C2 Node)</small></div>
+                </div>
+                <span class="badge bg-danger">IP</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='APT29') }}" class="cmd-palette-item" data-keywords="apt29 cozy bear midnight blizzard svr rf correlation">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-people-fill"></i></div>
+                    <div><strong>Correlate APT29 Cozy Bear</strong> <small class="text-muted">(Nation-State Adversary)</small></div>
+                </div>
+                <span class="badge bg-danger">ACTOR</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2024-3094') }}" class="cmd-palette-item" data-keywords="cve-2024-3094 xz utils liblzma backdoor cvss 10.0">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-warning"><i class="bi bi-bug-fill"></i></div>
+                    <div><strong>Analyze CVE-2024-3094</strong> <small class="text-muted">(XZ Utils Liblzma Backdoor)</small></div>
+                </div>
+                <span class="badge bg-danger">CRITICAL</span>
+            </a>
+            <a href="{{ url_for('malware_analysis', file_hash='Cobalt Strike Beacon') }}" class="cmd-palette-item" data-keywords="cobalt strike beacon c2 framework yara pe sandbox">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-shield-slash-fill"></i></div>
+                    <div><strong>Detonate Cobalt Strike Beacon</strong> <small class="text-muted">(C2 Framework)</small></div>
+                </div>
+                <span class="badge bg-danger">MALWARE</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='LockBit') }}" class="cmd-palette-item" data-keywords="lockbit 3.0 black ransomware extortion syndicate">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-file-earmark-lock-fill"></i></div>
+                    <div><strong>Track LockBit 3.0 Ransomware</strong> <small class="text-muted">(Extortion Group)</small></div>
+                </div>
+                <span class="badge bg-danger">RANSOM</span>
+            </a>
+
+            <div class="cmd-palette-group-title">Tactical Controls & Settings</div>
+            <a href="javascript:void(0)" onclick="closeCommandPalette(); toggleAiCopilot();" class="cmd-palette-item" data-keywords="ai copilot analyst assistant chat help">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-info"><i class="bi bi-cpu-fill"></i></div>
+                    <div><strong>Open AI Defense Copilot</strong> <small class="text-muted">(Interactive CTI Assistant)</small></div>
+                </div>
+                <span class="badge bg-dark text-muted">Alt C</span>
+            </a>
+            <a href="javascript:void(0)" onclick="closeCommandPalette(); toggleAudioFx();" class="cmd-palette-item" data-keywords="sound audio mute unmute fx radar ping chime">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-success"><i class="bi bi-volume-up-fill"></i></div>
+                    <div><strong>Toggle Tactical Audio FX</strong> <small class="text-muted">(Radar chirps, UI ticks & sirens)</small></div>
+                </div>
+                <span class="badge bg-dark text-muted">Alt M</span>
+            </a>
+            <a href="javascript:void(0)" onclick="closeCommandPalette(); toggleWarRoomMode();" class="cmd-palette-item" data-keywords="war room hud crt scanline mode brackets vintage">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-warning"><i class="bi bi-display"></i></div>
+                    <div><strong>Toggle War Room HUD Mode</strong> <small class="text-muted">(CRT scanlines & corner brackets)</small></div>
+                </div>
+                <span class="badge bg-dark text-muted">Alt W</span>
+            </a>
+            <a href="javascript:void(0)" onclick="closeCommandPalette(); setDefcon(1);" class="cmd-palette-item" data-keywords="defcon 1 maximum alert emergency crimson">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-danger"><i class="bi bi-radioactive"></i></div>
+                    <div><strong>Set DEFCON 1 — Maximum Alert</strong> <small class="text-muted">(Pulsing crimson aura)</small></div>
+                </div>
+                <span class="badge bg-danger">CRIMSON</span>
+            </a>
+            <a href="javascript:void(0)" onclick="closeCommandPalette(); setDefcon(5);" class="cmd-palette-item" data-keywords="defcon 5 normal defense green peace">
+                <div class="cmd-palette-item-left">
+                    <div class="cmd-palette-item-icon text-success"><i class="bi bi-shield-fill-check"></i></div>
+                    <div><strong>Set DEFCON 5 — Normal Defense</strong> <small class="text-muted">(Calm green aura)</small></div>
+                </div>
+                <span class="badge bg-success">GREEN</span>
+            </a>
+        </div>
+
+        <div class="cmd-palette-footer">
+            <div>Navigate with <kbd>↑</kbd> <kbd>↓</kbd> · Select with <kbd>↵</kbd> · Close with <kbd>ESC</kbd></div>
+            <div>Quick Palette: <kbd>Ctrl + K</kbd></div>
+        </div>
+    </div>
+</div>
+
+<!-- Keyboard Shortcuts Help Modal (?) -->
+<div class="modal fade" id="shortcutsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border border-secondary border-opacity-50" style="background:#0f172a; box-shadow:0 0 50px rgba(0,0,0,0.8);">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-keyboard text-info"></i> Keyboard Navigation Shortcuts
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-dark table-hover mb-0" style="font-size:13px;">
+                    <tbody>
+                        <tr><td><kbd>Ctrl + K</kbd> or <kbd>/</kbd></td><td class="text-light">Spotlight Command Palette & Quick Search</td></tr>
+                        <tr><td><kbd>Alt + C</kbd></td><td class="text-light">Open / Close AI SOC Defense Copilot</td></tr>
+                        <tr><td><kbd>Alt + M</kbd></td><td class="text-light">Toggle Tactical Audio Sound FX</td></tr>
+                        <tr><td><kbd>Alt + W</kbd></td><td class="text-light">Toggle War Room HUD (CRT Scanlines)</td></tr>
+                        <tr><td><kbd>?</kbd></td><td class="text-light">Show this Keyboard Shortcuts cheat-sheet</td></tr>
+                        <tr><td><kbd>Esc</kbd></td><td class="text-light">Close any active Modal, Palette, or Drawer</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>D</kbd></td><td class="text-light">Go to Security Operations Command Center</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>M</kbd></td><td class="text-light">Go to Live Threat Telemetry Map</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>F</kbd></td><td class="text-light">Go to Live STIX/TAXII Threat Feed</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>I</kbd></td><td class="text-light">Go to IOC Search & OSINT Engine</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>C</kbd></td><td class="text-light">Go to Multi-Entity Correlation Engine</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>V</kbd></td><td class="text-light">Go to CVE Vulnerability Explorer</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>S</kbd></td><td class="text-light">Go to Malware Sandbox Analysis</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>A</kbd></td><td class="text-light">Go to SOC Incident Alert Center</td></tr>
+                        <tr><td><kbd>G</kbd> then <kbd>R</kbd></td><td class="text-light">Go to CISO Executive Reports</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-25">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close Shortcuts</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+    <!-- Public Authentication Layout -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash-wrapper">
+            <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} cyber-alert">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow" role="alert">
                         {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
     {% endwith %}
 
-    {% block content %}{% endblock %}
+    {% block auth_content %}{% endblock %}
+{% endif %}
 
-</div>
-
+<!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
-
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<!-- MapLibre GL -->
+<script src="https://unpkg.com/maplibre-gl@4.3.2/dist/maplibre-gl.js"></script>
+<!-- Vis.js Network -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.js"></script>
+<!-- Custom Script -->
 <script src="{{ url_for('static', filename='script.js') }}"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const themeToggle = document.getElementById("themeToggle");
-    const bell = document.getElementById("notificationBtn");
-    const notificationBox = document.getElementById("notificationDropdown");
-    const profileMenu = document.getElementById("profileMenu");
-    const profileBox = document.getElementById("profileDropdown");
-
-    if (localStorage.getItem("theme") === "light") {
-        document.body.classList.add("light-mode");
-        if (themeToggle) themeToggle.className = "bi bi-sun";
-    }
-
-    if (themeToggle) {
-        themeToggle.onclick = function (e) {
-            e.stopPropagation();
-            document.body.classList.toggle("light-mode");
-
-            if (document.body.classList.contains("light-mode")) {
-                localStorage.setItem("theme", "light");
-                themeToggle.className = "bi bi-sun";
-            } else {
-                localStorage.setItem("theme", "dark");
-                themeToggle.className = "bi bi-moon";
-            }
-        };
-    }
-
-    if (bell && notificationBox) {
-        bell.onclick = function (e) {
-            e.stopPropagation();
-            notificationBox.classList.toggle("show");
-            if (profileBox) profileBox.classList.remove("show");
-        };
-    }
-
-    if (profileMenu && profileBox) {
-        profileMenu.onclick = function (e) {
-            e.stopPropagation();
-            profileBox.classList.toggle("show");
-            if (notificationBox) notificationBox.classList.remove("show");
-        };
-    }
-
-    document.onclick = function () {
-        if (notificationBox) notificationBox.classList.remove("show");
-        if (profileBox) profileBox.classList.remove("show");
-    };
-});
-</script>
 </body>
 </html>

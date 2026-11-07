@@ -1,0 +1,11 @@
+indicator,ioc_type,threat_actor,malware_family,cve,mitre_id,mitre_name,severity,confidence,country,asn,sector,feed_source,first_seen
+185.220.101.45,IP Address,APT29,Cobalt Strike,CVE-2023-23397,T1071.001,Web Protocols (C2),Critical,96,Russia,AS205540,Government & Diplomatic,Palo Alto Unit 42,2026-06-12 10:14:22
+45.144.227.55,IP Address,Volt Typhoon,KV-Botnet,CVE-2024-21887,T1190,Exploit Public-Facing Application,Critical,98,China,AS4134,Critical Infrastructure,CISA AIS,2026-06-15 08:22:19
+auth-secure-update.xyz,Domain,FIN7,Carbanak,CVE-2022-30190,T1566.002,Spearphishing Link,High,91,United Kingdom,AS12876,Financial Services,ThreatFox,2026-06-18 14:02:11
+103.21.244.12,IP Address,Lazarus Group,AppleJeus,CVE-2024-3094,T1110.001,Password Guessing (RDP),High,88,India,AS13335,Fintech & Crypto,AbuseIPDB,2026-06-20 19:45:00
+https://cdn-firmware.top/payload.bin,URL,Scattered Spider,BlackCat Ransomware,CVE-2024-1709,T1195.002,Software Dependencies,Critical,94,Germany,AS3320,Cloud Infrastructure,URLhaus,2026-06-22 11:10:05
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,SHA256 Hash,LockBit,LockBit 3.0 Black,CVE-2023-34362,T1486,Data Encrypted for Impact,Critical,99,United States,AS14618,Healthcare & Pharma,AlienVault OTX,2026-06-25 04:31:40
+89.248.172.12,IP Address,Sandworm,CaddyWiper,CVE-2021-44228,T1485,Data Destruction,High,92,Germany,AS3320,Energy & Utilities,Shadowserver,2026-06-28 16:50:12
+portal-support-login.online,Domain,BlackCat,ExMatter,CVE-2024-3400,T1078.004,Cloud Accounts Compromise,High,89,Singapore,AS3758,Manufacturing,ThreatFox,2026-07-01 07:12:44
+194.26.29.112,IP Address,Opportunistic Botnet,Mirai,CVE-2022-22965,T1498.001,Direct Network Flood,Medium,78,Netherlands,AS60729,Telecommunications,Feodo Tracker,2026-07-02 12:40:33
+91.215.85.17,IP Address,MuddyWater,Fast Reverse Proxy,CVE-2023-4966,T1059.003,Command Shell,High,87,Germany,AS3320,Aerospace & Defense,CISA AIS,2026-07-04 15:20:18

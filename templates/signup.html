@@ -1,39 +1,61 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block auth_content %}
 
 <div class="auth-wrapper">
     <div class="auth-card">
-        <h2 class="text-center mb-2">Create Analyst Account</h2>
-        <p class="text-center text-secondary mb-4">
-            Join Cyber Threat Intelligence Platform
-        </p>
+        <div class="auth-brand">
+            <div class="brand-icon">
+                <i class="bi bi-shield-plus"></i>
+            </div>
+            <h2>OPERATOR REGISTRATION</h2>
+            <p>CTICD Security Clearance Provisioning</p>
+        </div>
 
         <form method="POST">
             <div class="mb-3">
-                <label>Full Name</label>
-                <input type="text" name="name" class="form-control cyber-input" required>
+                <label class="form-label text-light small fw-bold">Analyst Full Name</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-person-badge"></i></span>
+                    <input type="text" name="name" class="form-control cyber-input" placeholder="e.g. Elena Rostova" required>
+                </div>
             </div>
 
             <div class="mb-3">
-                <label>Email Address</label>
-                <input type="email" name="email" class="form-control cyber-input" required>
+                <label class="form-label text-light small fw-bold">SOC Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-envelope"></i></span>
+                    <input type="email" name="email" class="form-control cyber-input" placeholder="name@organization.com" required>
+                </div>
             </div>
 
             <div class="mb-3">
-                <label>Password</label>
-                <input type="password" name="password" class="form-control cyber-input" required>
+                <label class="form-label text-light small fw-bold">Assigned Role</label>
+                <select name="role" class="form-select bg-dark text-light border-secondary">
+                    <option value="Security Analyst">Security Analyst</option>
+                    <option value="Lead Threat Hunter">Lead Threat Hunter</option>
+                    <option value="SOC Tier 2 Responder">SOC Tier 2 Responder</option>
+                    <option value="Incident Commander">Incident Commander</option>
+                </select>
             </div>
 
-            <button class="btn cyber-btn w-100 mt-2">
-                Create Account
+            <div class="mb-4">
+                <label class="form-label text-light small fw-bold">Secure Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-lock"></i></span>
+                    <input type="password" name="password" class="form-control cyber-input" placeholder="Minimum 6 characters" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn cyber-btn w-100 py-2 mb-3">
+                <i class="bi bi-person-check-fill"></i> Provision Analyst Account
             </button>
         </form>
 
-        <p class="text-center mt-3">
-            Already registered?
-            <a href="{{ url_for('login') }}">Login</a>
-        </p>
+        <div class="text-center mt-3 pt-3 border-top border-secondary border-opacity-25 small">
+            <span class="text-secondary">Already provisioned?</span>
+            <a href="{{ url_for('login') }}" class="text-info fw-bold text-decoration-none ms-1">Operator Login</a>
+        </div>
     </div>
 </div>
 

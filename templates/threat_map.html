@@ -1,205 +1,165 @@
 {% extends "base.html" %}
-{% block content %}
 
+{% block content %}
 <script>
 window.MAP_KEY = "{{ MAP_KEY }}";
-window.THREAT_MAP_PAGE = true;
 </script>
 
-<div class="pro-layout">
+<!-- Top Tactical Header -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-globe2 text-info"></i> Global Cyber Threat Telemetry Map
+        </h1>
+        <p class="text-secondary mb-0 small">Geospatial real-time interception of sovereign adversary attacks, targeted critical assets, and packet-level telemetry.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="radar-audio-btn" onclick="toggleRadarAudio(this)">
+            <i class="bi bi-volume-mute"></i> Audio Muted
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleStreamPause(this)">
+            <i class="bi bi-pause-fill"></i> Pause Stream
+        </button>
+        <span class="badge bg-danger p-2 px-3 fw-bold">
+            <i class="status-dot" style="background:#fff;box-shadow:0 0 6px #fff;"></i> LIVE SENSORS ACTIVE
+        </span>
+    </div>
+</div>
 
-    <aside class="pro-sidebar">
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
+<!-- Map Key Statistics -->
+<div class="pro-stats">
+    <div class="pro-card danger">
+        <p>Active Trajectories</p>
+        <h2 id="liveAttackCount">4,210</h2>
+        <small>Ballistic Sensor Streams</small>
+        <b>LIVE SENSORS</b>
+    </div>
+    <div class="pro-card danger">
+        <p>C2 Framework Beacons</p>
+        <h2>1,482</h2>
+        <small>Cobalt Strike / Sliver</small>
+        <b>ALERT</b>
+    </div>
+    <div class="pro-card warning">
+        <p>Critical Infrastructure</p>
+        <h2>6 Key Sectors</h2>
+        <small>Finance, Energy, Defense</small>
+        <b>TRACKED</b>
+    </div>
+    <div class="pro-card cyan">
+        <p>Monitored Global ASNs</p>
+        <h2>580+</h2>
+        <small>Compromised Gateways</small>
+        <b>ACTIVE</b>
+    </div>
+    <div class="pro-card success">
+        <p>Interceptor Grid</p>
+        <h2>100%</h2>
+        <small>Perimeter WAF/IPS</small>
+        <b>SHIELDED</b>
+    </div>
+</div>
+
+<div class="pro-grid">
+    <!-- Full Map Container -->
+    <section class="cyber-card p-0">
+        <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="status-dot"></span>
+                <span class="fw-bold text-white small">GEOSPATIAL REAL-TIME SENSOR MATRIX (MAPLIBRE GL)</span>
             </div>
+            <!-- Tactical Attack Vector Filter Chips -->
+            <div class="d-flex align-items-center gap-1 flex-wrap">
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-info py-0 px-2 active" style="font-size:11px;" onclick="setMapVectorFilter('all', this)">
+                    All Vectors
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-danger py-0 px-2" style="font-size:11px;" onclick="setMapVectorFilter('critical', this)">
+                    Critical C2
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-warning py-0 px-2" style="font-size:11px;" onclick="setMapVectorFilter('exploit', this)">
+                    RCE Exploits
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-info py-0 px-2" style="font-size:11px;" onclick="setMapVectorFilter('ddos', this)">
+                    DDoS Floods
+                </button>
+                <button type="button" class="btn btn-sm btn-dark border border-secondary text-success py-0 px-2" style="font-size:11px;" onclick="setMapVectorFilter('auth', this)">
+                    Auth Bypass
+                </button>
+            </div>
+        </div>
+
+        <div class="real-map-box threat-map-large">
+            <div class="map-scanline"></div>
+            <div id="realCyberMap"></div>
+
+            <div class="map-legend">
+                <div class="fw-bold mb-1 text-light">Intensity</div>
+                <div><span style="background:#ef4444;"></span>Critical C2 / Ransomware</div>
+                <div><span style="background:#f97316;"></span>High (DDoS, Exploits)</div>
+                <div><span style="background:#eab308;"></span>Medium (Probes, SQLi)</div>
+            </div>
+
+            <!-- Full Tactical HUD Box -->
+            <div class="map-hud-box">
+                <div class="fw-bold text-info mb-1 d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-radar text-danger"></i> REAL-TIME INTERCEPT TELEMETRY</span>
+                    <span class="badge bg-danger" style="font-size:9px;">LIVE SENSOR</span>
+                </div>
+                <div class="text-truncate mb-1"><b>Adversary Origin:</b> <span id="liveFrom" class="text-light">Loading source...</span></div>
+                <div class="text-truncate mb-1"><b>Target Asset:</b> <span id="liveTo" class="text-light">Loading target...</span></div>
+                <div class="mb-1"><b>Attack Vector:</b> <span id="liveType">Monitoring wire...</span></div>
+                <div class="mb-1 text-truncate"><b>MITRE ATT&CK:</b> <span id="liveMitre" class="text-info font-monospace small">T1071.001</span></div>
+                <div class="d-flex justify-content-between text-muted small mt-1 pt-1 border-top border-secondary border-opacity-25">
+                    <span><i class="bi bi-activity"></i> <span id="liveBandwidth">Calculating throughput...</span></span>
+                    <span id="liveTime" class="font-monospace">--:--:-- IST</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Side Live Attack Terminal -->
+    <section class="tactical-terminal">
+        <div class="tactical-terminal-header">
             <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+                <strong class="text-white small d-flex align-items-center gap-2">
+                    <i class="bi bi-terminal-fill text-danger"></i> LIVE ATTACK TELEMETRY FEED
+                </strong>
+                <small class="text-secondary" style="font-size:10px;">Select any event to open tactical dossier</small>
             </div>
+            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25" style="font-size:10px;">
+                <i class="status-dot" style="background:#ef4444;box-shadow:0 0 6px #ef4444;"></i> Ingesting
+            </span>
         </div>
 
-        <div class="pro-menu">
-            <a href="{{ url_for('dashboard') }}">
-                <i class="bi bi-house-door-fill"></i> Dashboard
-            </a>
-
-            <a href="{{ url_for('ioc_search') }}">
-                <i class="bi bi-search"></i> IOC Search
-            </a>
-
-            <a class="active" href="{{ url_for('threat_map') }}">
-                <i class="bi bi-globe2"></i> Threat Map
-            </a>
-
-            <a href="{{ url_for('threat_feed') }}">
-                <i class="bi bi-broadcast"></i> Threat Feed
-            </a>
-
-            <a href="{{ url_for('correlation_engine') }}">
-                <i class="bi bi-diagram-3"></i> Correlation Engine
-            </a>
-
-            <a href="{{ url_for('malware_analysis') }}">
-                <i class="bi bi-bug"></i> Malware Analysis
-            </a>
-
-            <a href="{{ url_for('cve_explorer') }}">
-                <i class="bi bi-exclamation-triangle"></i> CVE Explorer
-            </a>
-
-            <a href="{{ url_for('reports') }}">
-                <i class="bi bi-file-earmark-text"></i> Reports
-            </a>
-
-            <a href="{{ url_for('logout') }}">
-                <i class="bi bi-box-arrow-left"></i> Logout
-            </a>
-        </div>
-
-        <div class="pro-system">
-            <h5>Threat Map Status</h5>
-            <p class="green">● Live Map Online</p>
-            <hr>
-            <p>Geo Intelligence</p>
-            <h6>Enabled</h6>
-            <p>Attack Simulation</p>
-            <h6>Real-time</h6>
-            <p>Refresh Rate</p>
-            <h6>3 seconds</h6>
-        </div>
-    </aside>
-
-    <main class="pro-main">
-
-        <div class="pro-top">
-            <div>
-                <h1>Global Threat Map</h1>
-                <p>Full-screen live cyber attack visualization with source, target, IOC and MITRE context</p>
-            </div>
-
-            <div class="pro-profile">
-                <div class="pro-bell">
-                    <i class="bi bi-bell"></i>
-                    <span>12</span>
-                </div>
-
-                <i class="bi bi-moon"></i>
-
-                <div class="pro-user">
-                    <i class="bi bi-person"></i>
-                </div>
-
-                <div>
-                    <strong>{{ current_user.name }}</strong>
-                    <p>Threat Analyst</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="pro-stats">
-
-            <div class="pro-card danger">
-                <p>Live Attacks</p>
-                <h2 id="mapLiveAttacks">0</h2>
-                <small>Current session</small>
-                <b>LIVE</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card danger">
-                <p>Critical</p>
-                <h2 id="mapCriticalCount">0</h2>
-                <small>High urgency</small>
-                <b>Alert</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Countries</p>
-                <h2 id="mapCountryCount">0</h2>
-                <small>Observed targets</small>
-                <b>Tracked</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Top Technique</p>
-                <h2 style="font-size:24px;" id="mapTopTechnique">T1110</h2>
-                <small>MITRE ATT&CK</small>
-                <b>Mapped</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card danger">
-                <p>Risk Score</p>
-                <h2 id="mapRiskScore">92</h2>
-                <small>Global risk</small>
-                <b>/100</b>
-                <div class="spark"></div>
-            </div>
-
-        </div>
-
-        <div class="pro-grid">
-
-            <section class="pro-panel">
-                <div class="pro-title">
-                    <div>
-                        <h3>
-                            LIVE GLOBAL ATTACK MAP
-                            <span class="live">● LIVE</span>
-                        </h3>
-                        <p>Animated cyber attacks from source to destination</p>
+        <div class="tactical-stream-body" id="alertList" style="max-height: 580px;">
+            {% for item in initial_attacks %}
+            <div class="attack-row-item {{ item.attack.level }}" data-event-id="{{ item.event_id }}" onclick='openTacticalDossier({{ item|tojson }})'>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge {% if item.attack.level == 'critical' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:10px;">
+                            {{ item.attack.level|upper }}
+                        </span>
+                        <strong class="text-white small">{{ item.attack.type }}</strong>
                     </div>
-
-                    <select id="attackTypeFilter">
-                        <option value="all">All Attack Types</option>
-                        <option value="Brute Force Attack">Brute Force</option>
-                        <option value="DDoS Attack">DDoS</option>
-                        <option value="Malware Beaconing">Malware</option>
-                        <option value="Phishing Campaign">Phishing</option>
-                        <option value="SQL Injection Attempt">SQL Injection</option>
-                    </select>
+                    <span class="font-monospace small text-info fw-bold" style="font-size:10px;">{{ item.timestamp_time }} IST</span>
                 </div>
-
-                <div class="real-map-box threat-map-large">
-                    <div id="realCyberMap"></div>
-
-                    <div class="legend">
-                        <h5>Attack Intensity</h5>
-                        <p><i class="r"></i>Critical</p>
-                        <p><i class="o"></i>High</p>
-                        <p><i class="y"></i>Medium</p>
-                        <p><i class="g"></i>Low</p>
-                    </div>
-
-                    <div class="attackbox">
-                        <h5>LIVE ATTACK</h5>
-                        <p><b>From:</b> <span id="liveFrom">Loading...</span></p>
-                        <p><b>To:</b> <span id="liveTo">Loading...</span></p>
-                        <p><b>Type:</b> <span id="liveType">Loading...</span></p>
-                        <p><b>MITRE:</b> <span id="liveMitre">Loading...</span></p>
-                        <p><b>Time:</b> <span id="liveTime">Loading...</span></p>
-                    </div>
+                <div class="d-flex align-items-center justify-content-between text-secondary small" style="font-size:11.5px;">
+                    <span>
+                        {{ item.source.flag }} {{ item.source.city }} <i class="bi bi-arrow-right text-info"></i> {{ item.target.flag }} {{ item.target.city }}
+                        <span class="text-muted">({{ item.target.sector.split(' ')[0] }})</span>
+                    </span>
+                    <span class="badge bg-dark border border-secondary text-info font-monospace">{{ item.mitre.id }}</span>
                 </div>
-            </section>
-
-            <section class="pro-panel">
-                <div class="pro-title">
-                    <h3>LIVE ATTACK STREAM</h3>
-                    <a href="{{ url_for('threat_feed') }}">View Feed</a>
-                </div>
-
-                <div id="alertList"></div>
-
-                <br>
-                <a href="{{ url_for('correlation_engine') }}">Open Correlation Engine →</a>
-            </section>
-
+            </div>
+            {% endfor %}
         </div>
 
-    </main>
+        <div class="p-2 border-top border-secondary border-opacity-25 text-center bg-dark">
+            <a href="{{ url_for('threat_feed') }}" class="small text-info text-decoration-none">
+                <i class="bi bi-broadcast"></i> View Complete Threat Intelligence Feed →
+            </a>
+        </div>
+    </section>
 </div>
 
 {% endblock %}

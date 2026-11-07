@@ -1,414 +1,182 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="pro-layout">
-    <aside class="pro-sidebar">
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
-            </div>
-        </div>
-
-        <div class="pro-menu">
-            <a href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
-            <a href="{{ url_for('threat_map') }}"><i class="bi bi-globe2"></i> Threat Map</a>
-            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
-            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
-            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
-            <a href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
-            <a class="active" href="{{ url_for('reports') }}"><i class="bi bi-file-earmark-text"></i> Reports</a>
-            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
-        </div>
-
-        <div class="pro-system">
-            <h5>Report Engine</h5>
-            <p class="green">● Report Generator Online</p>
-            <hr>
-            <p>Generated</p>
-            <h6>{{ report.generated_at }}</h6>
-            <p>Report ID</p>
-            <h6>{{ report.report_id }}</h6>
-        </div>
-    </aside>
-
-    <main class="pro-main">
-        <div class="pro-top">
-            <div>
-                <h1>Threat Intelligence Report</h1>
-                <p>Executive Security Summary</p>
-            </div>
-            <div>
-                <button class="btn cyber-btn" onclick="printReport()">
-                    <i class="bi bi-printer"></i> Print Report
-                </button>
-            </div>
-        </div>
-
-        <div class="pro-stats">
-            <div class="pro-card danger">
-                <p>Overall Risk</p>
-                <h2>{{ report.overall_risk }}</h2>
-                <small>Security Posture</small>
-                <b>{{ report.risk_score }}/100</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Total Alerts</p>
-                <h2>{{ report.total_alerts }}</h2>
-                <small>Last 24 Hours</small>
-                <b>Tracked</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Malicious IPs</p>
-                <h2>{{ report.malicious_ips }}</h2>
-                <small>Detected</small>
-                <b>Active</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>IOC Detected</p>
-                <h2>{{ report.ioc_detected }}</h2>
-                <small>Correlated</small>
-                <b>Mapped</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card danger">
-                <p>Critical CVEs</p>
-                <h2>{{ report.critical_cves }}</h2>
-                <small>Pending Patch</small>
-                <b>Urgent</b>
-                <div class="spark"></div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-card-text"></i> Executive Summary</h3>
-                    </div>
-                    <p class="text-secondary">{{ report.summary }}</p>
-                    <table class="table table-dark table-hover">
-                        <tr>
-                            <th width="220">Report ID</th>
-                            <td>{{ report.report_id }}</td>
-                        </tr>
-                        <tr>
-                            <th>Generated At</th>
-                            <td>{{ report.generated_at }}</td>
-                        </tr>
-                        <tr>
-                            <th>Overall Risk</th>
-                            <td>
-                                {% if report.overall_risk == "Critical" %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif report.overall_risk == "High" %}
-                                <span class="badge bg-warning text-dark">High</span>
-                                {% elif report.overall_risk == "Medium" %}
-                                <span class="badge bg-info">Medium</span>
-                                {% else %}
-                                <span class="badge bg-success">Low</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Risk Score</th>
-                            <td>{{ report.risk_score }}/100</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="chart-card mb-4" style="height:auto;">
-                    <h4><i class="bi bi-speedometer2"></i> Risk Meter</h4>
-                    <hr>
-                    <h1 class="text-danger" style="font-size:64px;">{{ report.risk_score }}</h1>
-                    <p>Overall Risk Score</p>
-                    <div class="progress" style="height:14px;background:#020617;">
-                        <div class="progress-bar bg-danger" role="progressbar" data-risk="{{ report.risk_score }}"></div>
-                    </div>
-                    <br>
-                    <p class="text-secondary">Higher score indicates higher threat exposure and investigation priority.</p>
-                </div>
-            </div>
-        </div>
-                <div class="row">
-
-            <div class="col-lg-4">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-person-badge"></i>
-                            Top Threat Actor
-                        </h3>
-                    </div>
-
-                    <h2 class="text-danger">
-                        {{ report.top_actor }}
-                    </h2>
-
-                    <p class="text-secondary">
-                        Most frequently correlated threat actor identified during
-                        the analysis period.
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-bug"></i>
-                            Top Malware
-                        </h3>
-                    </div>
-
-                    <h2 class="text-warning">
-                        {{ report.top_malware }}
-                    </h2>
-
-                    <p class="text-secondary">
-                        Malware family with the highest detection frequency.
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-exclamation-triangle"></i>
-                            Top CVE
-                        </h3>
-                    </div>
-
-                    <h2 class="text-info">
-                        {{ report.top_cve }}
-                    </h2>
-
-                    <p class="text-secondary">
-                        Highest priority vulnerability requiring immediate action.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-lg-7">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-clock-history"></i>
-                            Recent Security Events
-                        </h3>
-                    </div>
-
-                    <table class="table table-dark table-hover align-middle">
-
-                        <thead>
-
-                            <tr>
-                                <th>Time</th>
-                                <th>Type</th>
-                                <th>Severity</th>
-                                <th>Source</th>
-                                <th>Target</th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                        {% for event in report.events %}
-
-                            <tr>
-
-                                <td>{{ event.time }}</td>
-
-                                <td>{{ event.type }}</td>
-
-                                <td>
-
-                                    {% if event.severity == "Critical" %}
-
-                                        <span class="badge bg-danger">
-                                            Critical
-                                        </span>
-
-                                    {% elif event.severity == "High" %}
-
-                                        <span class="badge bg-warning text-dark">
-                                            High
-                                        </span>
-
-                                    {% elif event.severity == "Medium" %}
-
-                                        <span class="badge bg-info">
-                                            Medium
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="badge bg-success">
-                                            Low
-                                        </span>
-
-                                    {% endif %}
-
-                                </td>
-
-                                <td>{{ event.source }}</td>
-
-                                <td>{{ event.target }}</td>
-
-                            </tr>
-
-                        {% endfor %}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-                        <div class="col-lg-5">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-shield-check"></i> Recommendations</h3>
-                    </div>
-
-                    <ul class="text-secondary">
-                        {% for rec in report.recommendations %}
-                        <li>{{ rec }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-check-circle"></i> Report Status</h3>
-                    </div>
-
-                    <table class="table table-dark table-hover">
-                        <tr>
-                            <th>IOC Correlation</th>
-                            <td><span class="badge bg-success">Completed</span></td>
-                        </tr>
-                        <tr>
-                            <th>Malware Review</th>
-                            <td><span class="badge bg-success">Completed</span></td>
-                        </tr>
-                        <tr>
-                            <th>CVE Intelligence</th>
-                            <td><span class="badge bg-success">Completed</span></td>
-                        </tr>
-                        <tr>
-                            <th>MITRE Mapping</th>
-                            <td><span class="badge bg-success">Completed</span></td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="pro-panel mb-4">
-            <div class="pro-title">
-                <h3><i class="bi bi-bar-chart-line"></i> Executive Conclusion</h3>
-            </div>
-
-            <div class="alert alert-danger">
-                <h5>Security Assessment</h5>
-                <p class="mb-2">
-                    Based on the collected threat intelligence, IOC correlation,
-                    malware analysis and vulnerability assessment, the organization
-                    is currently operating under a
-                    <strong>{{ report.overall_risk }}</strong>
-                    threat posture with an overall risk score of
-                    <strong>{{ report.risk_score }}/100</strong>.
-                </p>
-
-                <p class="mb-0">
-                    Immediate action is recommended for Critical vulnerabilities,
-                    malicious indicators and high-confidence threat actor activity.
-                </p>
-            </div>
-        </div>
-            </main>
+<!-- Print & Action Header -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 no-print">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white">
+            <i class="bi bi-file-earmark-text-fill text-info"></i> Executive Threat Intelligence Briefing
+        </h1>
+        <p class="text-secondary mb-0 small">Comprehensive strategic and tactical risk report formatted for leadership and security operations handover.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn cyber-btn btn-sm" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print / Save PDF
+        </button>
+        <a href="{{ url_for('export_report_json') }}" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-filetype-json"></i> Export JSON
+        </a>
+        <a href="{{ url_for('export_report_csv') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-filetype-csv"></i> Export CSV
+        </a>
+    </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+<!-- Formal Executive Report Dossier -->
+<div class="cyber-card p-4">
+    <!-- Report Title Banner -->
+    <div class="d-flex align-items-start justify-content-between border-bottom border-secondary border-opacity-25 pb-3 mb-4 flex-wrap gap-2">
+        <div>
+            <div class="badge bg-danger p-2 px-3 fw-bold mb-2">{{ report.classification }}</div>
+            <h2 class="h4 fw-bold text-white mb-1">{{ report.title }}</h2>
+            <div class="small text-muted">
+                <span><b>Report ID:</b> {{ report.report_id }}</span> |
+                <span><b>Generated:</b> {{ report.generated_at }}</span> |
+                <span><b>Author:</b> {{ report.author }}</span>
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="d-block small text-muted">DEFCON Risk Index</span>
+            <span class="fs-4 fw-bold text-danger">{{ report.risk_score }} / 100</span>
+            <small class="d-block text-warning">{{ report.overall_posture }}</small>
+        </div>
+    </div>
 
-    const bar = document.querySelector(".progress-bar");
+    <!-- Executive Metrics Grid -->
+    <div class="row g-3 mb-4 text-center">
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Correlated Events</span>
+                <strong class="fs-5 text-white">{{ report.metrics.total_threat_events }}</strong>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Active Incidents</span>
+                <strong class="fs-5 text-danger">{{ report.metrics.correlated_incidents }}</strong>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Critical CVEs</span>
+                <strong class="fs-5 text-warning">{{ report.metrics.critical_cves_active }}</strong>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Ransomware Ops</span>
+                <strong class="fs-5 text-danger">{{ report.metrics.ransomware_campaigns_tracked }}</strong>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Active APTs</span>
+                <strong class="fs-5 text-info">{{ report.metrics.active_adversaries }}</strong>
+            </div>
+        </div>
+        <div class="col-md-2 col-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <span class="d-block text-muted small">Dropped IPs</span>
+                <strong class="fs-5 text-success">{{ report.metrics.blocked_ip_ranges }}</strong>
+            </div>
+        </div>
+    </div>
 
-    if (bar) {
+    <!-- Executive Summary Section -->
+    <div class="mb-4">
+        <h5 class="h6 text-info fw-bold mb-2"><i class="bi bi-shield-shaded"></i> 1. CISO Executive Strategic Summary</h5>
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 text-light leading-relaxed">
+            {{ report.executive_summary }}
+        </div>
+    </div>
 
-        const value = parseInt(bar.dataset.risk) || 0;
+    <!-- Threat Highlights -->
+    <div class="mb-4">
+        <h5 class="h6 text-info fw-bold mb-2"><i class="bi bi-exclamation-diamond-fill text-warning"></i> 2. Threat Landscape Highlights</h5>
+        <div class="row g-2">
+            {% for item in report.threat_landscape_highlights %}
+            <div class="col-lg-4">
+                <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <strong class="text-white small">{{ item.title }}</strong>
+                        <span class="badge bg-danger">{{ item.severity }}</span>
+                    </div>
+                    <p class="small text-secondary mb-2">{{ item.description }}</p>
+                    <span class="badge bg-secondary bg-opacity-25 text-info" style="font-size:10px;">{{ item.mitre }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-        bar.style.width = value + "%";
-        bar.setAttribute("aria-valuenow", value);
+    <!-- Active Threat Groups Table -->
+    <div class="mb-4">
+        <h5 class="h6 text-info fw-bold mb-2"><i class="bi bi-people-fill text-danger"></i> 3. Active Threat Groups & Attribution</h5>
+        <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover mb-0 border border-secondary border-opacity-25">
+                <thead>
+                    <tr>
+                        <th>Threat Actor Group</th>
+                        <th>Origin / Sponsor</th>
+                        <th>Targeted Industry Sectors</th>
+                        <th class="text-end">Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for actor in report.top_active_actors %}
+                    <tr>
+                        <td class="fw-bold text-danger">{{ actor.name }}</td>
+                        <td>{{ actor.origin }}</td>
+                        <td class="text-secondary">{{ actor.targets }}</td>
+                        <td class="text-end"><span class="badge bg-danger">{{ actor.risk }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        bar.classList.remove(
-            "bg-danger",
-            "bg-warning",
-            "bg-info",
-            "bg-success"
-        );
+    <!-- Critical Vulnerabilities -->
+    <div class="mb-4">
+        <h5 class="h6 text-info fw-bold mb-2"><i class="bi bi-bug-fill text-warning"></i> 4. High-Priority Weaponized Vulnerabilities</h5>
+        <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover mb-0 border border-secondary border-opacity-25">
+                <thead>
+                    <tr>
+                        <th>CVE Identifier</th>
+                        <th>Affected Product</th>
+                        <th>CVSS Score</th>
+                        <th>CISA KEV Enforced</th>
+                        <th class="text-end">Remediation Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cve in report.critical_vulnerabilities %}
+                    <tr>
+                        <td class="font-monospace text-info fw-bold">{{ cve.cve }}</td>
+                        <td>{{ cve.product }}</td>
+                        <td class="fw-bold text-danger">{{ cve.cvss }}</td>
+                        <td><span class="badge bg-danger">{{ cve.cisa_kev }}</span></td>
+                        <td class="text-end"><span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">{{ cve.patch_status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        if (value >= 85) {
-
-            bar.classList.add("bg-danger");
-
-        } else if (value >= 70) {
-
-            bar.classList.add("bg-warning");
-
-        } else if (value >= 40) {
-
-            bar.classList.add("bg-info");
-
-        } else {
-
-            bar.classList.add("bg-success");
-
-        }
-    }
-
-});
-
-function printReport() {
-
-    window.print();
-
-}
-</script>
+    <!-- Strategic Defense Recommendations -->
+    <div>
+        <h5 class="h6 text-info fw-bold mb-2"><i class="bi bi-check2-circle text-success"></i> 5. Strategic Defense Action Plan</h5>
+        <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+            <ul class="mb-0 text-secondary small" style="line-height: 1.8;">
+                {% for rec in report.strategic_recommendations %}
+                <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

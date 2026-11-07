@@ -1,512 +1,156 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="pro-layout">
-
-    <!-- ================= SIDEBAR ================= -->
-
-    <aside class="pro-sidebar">
-
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
-            </div>
-        </div>
-
-        <div class="pro-menu">
-
-            <a href="{{ url_for('dashboard') }}">
-                <i class="bi bi-house-door-fill"></i>
-                Dashboard
-            </a>
-
-            <a href="{{ url_for('ioc_search') }}">
-                <i class="bi bi-search"></i>
-                IOC Search
-            </a>
-
-            <a href="{{ url_for('threat_feed') }}">
-                <i class="bi bi-broadcast"></i>
-                Threat Feed
-            </a>
-
-            <a class="active" href="{{ url_for('cve_explorer') }}">
-                <i class="bi bi-exclamation-triangle"></i>
-                CVE Explorer
-            </a>
-
-            <a href="#">
-                <i class="bi bi-bug"></i>
-                Malware Analysis
-            </a>
-
-            <a href="#">
-                <i class="bi bi-diagram-3"></i>
-                Correlation Engine
-            </a>
-
-            <a href="#">
-                <i class="bi bi-file-earmark-text"></i>
-                Reports
-            </a>
-
-            <a href="{{ url_for('logout') }}">
-                <i class="bi bi-box-arrow-left"></i>
-                Logout
-            </a>
-
-        </div>
-
-        <div class="pro-system">
-
-            <h5>CVE Database</h5>
-
-            <p class="green">● Online</p>
-
-            <hr>
-
-            <p>Total CVEs</p>
-            <h6>260,000+</h6>
-
-            <p>Known Critical</p>
-            <h6>18,000+</h6>
-
-            <p>Last Updated</p>
-            <h6>{{ current_time }}</h6>
-
-        </div>
-
-    </aside>
-
-    <!-- ================= MAIN ================= -->
-
-    <main class="pro-main">
-
-        <div class="pro-top">
-
-            <div>
-
-                <h1>CVE Explorer</h1>
-
-                <p>
-                    Search Common Vulnerabilities and Exposures (CVE)
-                </p>
-
-            </div>
-
-            <div class="pro-profile">
-
-                <div class="pro-user">
-                    <i class="bi bi-person"></i>
-                </div>
-
-                <div>
-                    <strong>{{ current_user.name }}</strong>
-                    <p>Threat Analyst</p>
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- ================= SEARCH ================= -->
-
-        <div class="pro-panel">
-
-            <form method="POST">
-
-                <div class="row g-3 align-items-end">
-
-                    <div class="col-lg-10">
-
-                        <label class="form-label">
-
-                            CVE ID
-
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control cyber-input"
-                            name="cve"
-                            placeholder="Example : CVE-2024-3094"
-                            required>
-
-                    </div>
-
-                    <div class="col-lg-2">
-
-                        <button class="btn cyber-btn w-100">
-
-                            <i class="bi bi-search"></i>
-
-                            Search
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </form>
-
-        </div>
-
-        <br>
-                {% if error %}
-
-        <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i>
-            {{ error }}
-        </div>
-
-        {% endif %}
-
-        {% if not result %}
-
-        <div class="pro-panel">
-            <h3>Search Examples</h3>
-            <p class="text-secondary">
-                Try known vulnerabilities to view CVSS, exploit status, MITRE mapping and patch guidance.
-            </p>
-
-            <div class="bottom">
-
-                <div class="chart-card">
-                    <h4>CVE-2024-3094</h4>
-                    <p>XZ Utils Backdoor</p>
-                    <span class="badge bg-danger">Critical</span>
-                </div>
-
-                <div class="chart-card">
-                    <h4>CVE-2023-34362</h4>
-                    <p>MOVEit SQL Injection</p>
-                    <span class="badge bg-danger">Critical</span>
-                </div>
-
-                <div class="chart-card">
-                    <h4>CVE-2021-44228</h4>
-                    <p>Apache Log4Shell</p>
-                    <span class="badge bg-danger">Critical</span>
-                </div>
-
-                <div class="chart-card">
-                    <h4>CVE-2026-12345</h4>
-                    <p>Unknown CVE Simulation</p>
-                    <span class="badge bg-warning text-dark">Simulated</span>
-                </div>
-
-            </div>
-        </div>
-
-        {% endif %}
-
-        {% if result %}
-
-        <div class="pro-stats">
-
-            <div class="pro-card danger">
-                <p>CVSS Score</p>
-                <h2>{{ result.cvss }}</h2>
-                <small>Base score</small>
-                <b>{{ result.severity }}</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card danger">
-                <p>Severity</p>
-                <h2 style="font-size:26px;">{{ result.severity }}</h2>
-                <small>Risk category</small>
-                <b>Active</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Exploit Status</p>
-                <h2 style="font-size:21px;">{{ result.exploit_status }}</h2>
-                <small>Exploit intelligence</small>
-                <b>Tracked</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>CWE</p>
-                <h2 style="font-size:26px;">{{ result.cwe }}</h2>
-                <small>Weakness class</small>
-                <b>Mapped</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card danger">
-                <p>MITRE</p>
-                <h2 style="font-size:26px;">{{ result.mitre_id }}</h2>
-                <small>{{ result.mitre_name }}</small>
-                <b>ATT&CK</b>
-                <div class="spark"></div>
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-lg-7">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-exclamation-octagon"></i>
-                            Vulnerability Information
-                        </h3>
-                    </div>
-
-                    <table class="table table-dark table-hover align-middle">
-                        <tr>
-                            <th width="220">CVE ID</th>
-                            <td>{{ result.cve_id }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Title</th>
-                            <td>{{ result.title }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Vendor</th>
-                            <td>{{ result.vendor }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Product</th>
-                            <td>{{ result.product }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>CVSS</th>
-                            <td>{{ result.cvss }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Severity</th>
-                            <td>
-                                {% if result.severity == "Critical" %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif result.severity == "High" %}
-                                <span class="badge bg-warning text-dark">High</span>
-                                {% elif result.severity == "Medium" %}
-                                <span class="badge bg-info">Medium</span>
-                                {% else %}
-                                <span class="badge bg-success">Low</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <th>Exploit Status</th>
-                            <td>{{ result.exploit_status }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Last Checked</th>
-                            <td>{{ result.last_checked }}</td>
-                        </tr>
-                    </table>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-5">
-
-                <div class="chart-card mb-4" style="height:auto;">
-
-                    <h4>
-                        <i class="bi bi-speedometer2"></i>
-                        Risk Meter
-                    </h4>
-
-                    <hr>
-
-                    <h1 class="text-danger" style="font-size:64px;">
-                        {{ result.cvss }}
-                    </h1>
-
-                    <p>CVSS Base Score</p>
-
-                    <div class="progress" style="height:14px;background:#020617;">
-                        <div
-                            class="progress-bar bg-danger"
-                            role="progressbar"
-                            data-cvss="{{ result.cvss }}">
-                        </div>
-                    </div>
-
-                    <br>
-
-                    <p class="text-secondary">
-                        Higher CVSS scores indicate greater exploitation risk and urgency.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-                <div class="row">
-
-            <div class="col-lg-6">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-diagram-3"></i>
-                            MITRE ATT&CK Mapping
-                        </h3>
-                    </div>
-
-                    <table class="table table-dark table-hover">
-                        <tr>
-                            <th width="220">Technique ID</th>
-                            <td>{{ result.mitre_id }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Technique Name</th>
-                            <td>{{ result.mitre_name }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Mapped Tactic</th>
-                            <td>Initial Access / Exploitation</td>
-                        </tr>
-
-                        <tr>
-                            <th>Attack Surface</th>
-                            <td>Public-facing applications, services, exposed systems</td>
-                        </tr>
-                    </table>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-6">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-shield-check"></i>
-                            Patch Recommendation
-                        </h3>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        {{ result.patch }}
-                    </div>
-
-                    <ul class="text-secondary">
-                        <li>Validate whether affected product exists in your environment.</li>
-                        <li>Apply official vendor patch or workaround immediately.</li>
-                        <li>Review firewall, IDS/IPS and endpoint logs for exploitation attempts.</li>
-                        <li>Monitor related IOCs and unusual outbound connections.</li>
-                    </ul>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="row">
-
-            <div class="col-lg-7">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-card-text"></i>
-                            Vulnerability Summary
-                        </h3>
-                    </div>
-
-                    <p class="text-secondary">
-                        {{ result.summary }}
-                    </p>
-
-                    <table class="table table-dark table-hover">
-                        <tr>
-                            <th width="220">Exploit Status</th>
-                            <td>{{ result.exploit_status }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>CWE</th>
-                            <td>{{ result.cwe }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Vendor</th>
-                            <td>{{ result.vendor }}</td>
-                        </tr>
-
-                        <tr>
-                            <th>Product</th>
-                            <td>{{ result.product }}</td>
-                        </tr>
-                    </table>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-5">
-
-                <div class="pro-panel mb-4">
-
-                    <div class="pro-title">
-                        <h3>
-                            <i class="bi bi-clock-history"></i>
-                            Analysis Timeline
-                        </h3>
-                    </div>
-
-                    <table class="table table-dark table-hover">
-                        {% for item in result.timeline %}
-                        <tr>
-                            <th width="160">{{ item.time }}</th>
-                            <td>{{ item.event }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        {% endif %}
-
-    </main>
-
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i> CVE Vulnerability & Exploit Intelligence
+        </h1>
+        <p class="text-secondary mb-0 small">Correlate CVE vulnerabilities with CVSS v3.1 metrics, EPSS exploit likelihood, CISA KEV weaponization, and Snort IDS signatures.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-dark border border-secondary text-info px-3 py-2 font-monospace">
+            <i class="bi bi-clock"></i> {{ current_time }}
+        </span>
+    </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".progress-bar[data-cvss]").forEach(function (bar) {
-        const cvss = parseFloat(bar.dataset.cvss || "0");
-        const width = Math.min(cvss * 10, 100);
-        bar.style.width = width + "%";
-    });
-});
-</script>
+<!-- CVE Query Box -->
+<div class="cyber-card p-4 mb-4">
+    <form method="POST">
+        <label class="form-label fw-bold text-light">Enter Common Vulnerabilities and Exposures (CVE) ID</label>
+        <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-warning"><i class="bi bi-bug"></i></span>
+            <input type="text" name="cve" class="form-control cyber-input" placeholder="e.g. CVE-2024-3094, CVE-2024-3400, CVE-2023-34362, CVE-2021-44228..." value="{{ query_cve or '' }}" required>
+            <button class="btn cyber-btn px-4" type="submit">
+                <i class="bi bi-search"></i> Analyze Vulnerability
+            </button>
+        </div>
+        <!-- Highlighted Sample Presets Heading & Interactive Pills -->
+        <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+            <span class="sample-heading-highlight">
+                <i class="bi bi-lightning-charge-fill text-warning"></i> SAMPLE CVE TARGETS:
+            </span>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2024-3094') }}" class="sample-preset-pill danger">
+                <i class="bi bi-bug-fill"></i> CVE-2024-3094 <span class="badge bg-danger ms-1" style="font-size:9px;">XZ Backdoor</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2024-3400') }}" class="sample-preset-pill danger">
+                <i class="bi bi-shield-x"></i> CVE-2024-3400 <span class="badge bg-danger ms-1" style="font-size:9px;">PAN-OS RCE</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2024-21887') }}" class="sample-preset-pill warning">
+                <i class="bi bi-exclamation-triangle"></i> CVE-2024-21887 <span class="badge bg-warning text-dark ms-1" style="font-size:9px;">Ivanti ICS</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2024-1709') }}" class="sample-preset-pill danger">
+                <i class="bi bi-key-fill"></i> CVE-2024-1709 <span class="badge bg-danger ms-1" style="font-size:9px;">ScreenConnect Auth Bypass</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2023-34362') }}" class="sample-preset-pill cyan">
+                <i class="bi bi-database-fill-x"></i> CVE-2023-34362 <span class="badge bg-info text-dark ms-1" style="font-size:9px;">MOVEit SQLi</span>
+            </a>
+            <a href="{{ url_for('cve_explorer', cve='CVE-2021-44228') }}" class="sample-preset-pill danger">
+                <i class="bi bi-fire"></i> CVE-2021-44228 <span class="badge bg-danger ms-1" style="font-size:9px;">Log4Shell</span>
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if error %}
+<div class="alert alert-danger border border-danger border-opacity-50" style="background: rgba(239,68,68,0.15);" role="alert">
+    <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i> {{ error }}
+</div>
+{% endif %}
+
+{% if result %}
+<!-- CVE Summary KPI Row -->
+<div class="pro-stats">
+    <div class="pro-card {% if result.cvss >= 9.0 %}danger{% elif result.cvss >= 7.0 %}warning{% else %}cyan{% endif %}">
+        <p>CVSS v3.1 Base Score</p>
+        <h2>{{ result.cvss }} / 10.0</h2>
+        <small>Severity Rating</small>
+        <b>{{ result.severity }}</b>
+    </div>
+    <div class="pro-card {% if result.cisa_kev %}danger{% else %}cyan{% endif %}">
+        <p>CISA KEV Catalog</p>
+        <h2 style="font-size:22px;">{% if result.cisa_kev %}ENFORCED{% else %}NOT LISTED{% endif %}</h2>
+        <small>Known Exploited</small>
+        <b>{% if result.cisa_kev %}YES{% else %}NO{% endif %}</b>
+    </div>
+    <div class="pro-card warning">
+        <p>EPSS Exploit Likelihood</p>
+        <h2>{{ result.epss_score }}</h2>
+        <small>Percentile Rank</small>
+        <b>{{ result.epss_percentile }}%</b>
+    </div>
+    <div class="pro-card cyan">
+        <p>Exploit Availability</p>
+        <h2 style="font-size:18px;">Weaponized</h2>
+        <small>Public PoC</small>
+        <b>Active</b>
+    </div>
+    <div class="pro-card danger">
+        <p>Ransomware Linkage</p>
+        <h2 style="font-size:20px;">{% if result.ransomware_linked %}CONFIRMED{% else %}UNVERIFIED{% endif %}</h2>
+        <small>Extortion Groups</small>
+        <b>Tracked</b>
+    </div>
+</div>
+
+<!-- Detailed Technical Intelligence Card -->
+<div class="cyber-card mb-4">
+    <div class="pro-title">
+        <div>
+            <h3><i class="bi bi-file-earmark-code text-info"></i> {{ result.cve_id }}: {{ result.title }}</h3>
+            <p>{{ result.vendor }} — {{ result.product }} ({{ result.affected_versions }})</p>
+        </div>
+        <span class="badge bg-danger p-2 px-3">{{ result.severity|upper }}</span>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8">
+            <div class="section-heading-highlight">
+                <i class="bi bi-card-text text-info"></i> Vulnerability Technical Synopsis
+            </div>
+            <p class="text-secondary leading-relaxed mb-3">{{ result.summary }}</p>
+
+            <div class="section-heading-highlight">
+                <i class="bi bi-wrench text-warning"></i> Vendor Mitigation & Patch Guidance
+            </div>
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 text-light">
+                <i class="bi bi-check-circle-fill text-success me-2"></i> {{ result.patch }}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 h-100">
+                <div class="section-heading-highlight">
+                    <i class="bi bi-sliders text-info"></i> Metrics & Attribution
+                </div>
+                <table class="table table-dark table-sm mb-0">
+                    <tr><th width="120">CWE Weakness:</th><td class="small">{{ result.cwe }}</td></tr>
+                    <tr><th>MITRE Technique:</th><td class="small text-info fw-bold">{{ result.mitre_id }} - {{ result.mitre_name }}</td></tr>
+                    <tr><th>Known Threat Actors:</th><td class="small text-danger fw-bold">{{ result.threat_actors|join(', ') }}</td></tr>
+                    <tr><th>CVSS Vector:</th><td class="small font-monospace text-muted text-break">{{ result.cvss_vector }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snort IDS Signature -->
+    <div class="section-heading-highlight mt-4">
+        <i class="bi bi-broadcast text-warning"></i> Network Perimeter Detection Rule (Snort / Suricata)
+    </div>
+    <div class="code-box">
+        <button class="code-copy-btn" onclick="copyCode(this, 'cveSnortCode')"><i class="bi bi-clipboard"></i> Copy</button>
+        <code id="cveSnortCode">{{ result.snort_rule }}</code>
+    </div>
+</div>
+
+<div class="text-end">
+    <a href="{{ url_for('correlation_engine', indicator=result.cve_id) }}" class="btn cyber-btn">
+        <i class="bi bi-diagram-3"></i> Correlate {{ result.cve_id }} in Graph →
+    </a>
+</div>
+
+{% endif %}
 
 {% endblock %}

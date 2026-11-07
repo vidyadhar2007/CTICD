@@ -1,340 +1,261 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="pro-layout">
-
-    <aside class="pro-sidebar">
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
-            </div>
-        </div>
-
-        <div class="pro-menu">
-            <a href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
-            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
-            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
-            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
-            <a class="active" href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
-            <a href="#"><i class="bi bi-file-earmark-text"></i> Reports</a>
-            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
-        </div>
-
-        <div class="pro-system">
-            <h5>Correlation Engine</h5>
-            <p class="green">● Graph Engine Online</p>
-            <hr>
-            <p>Entity Types</p>
-            <h6>IOC / IP / Domain / Malware</h6>
-            <p>MITRE Mapping</p>
-            <h6>Enabled</h6>
-            <p>CVE Linking</p>
-            <h6>Enabled</h6>
-        </div>
-    </aside>
-
-    <main class="pro-main">
-        <div class="pro-top">
-            <div>
-                <h1>Correlation Engine</h1>
-                <p>Connect IOCs, malware, CVEs, MITRE techniques, infrastructure and threat actors</p>
-            </div>
-            <div class="pro-profile">
-                <div class="pro-user"><i class="bi bi-person"></i></div>
-                <div>
-                    <strong>{{ current_user.name }}</strong>
-                    <p>Threat Hunter</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="pro-panel">
-            <form method="POST">
-                <div class="row g-3 align-items-end">
-                    <div class="col-lg-10">
-                        <label class="form-label">Indicator / IOC / Domain / Hash</label>
-                        <input type="text" class="form-control cyber-input" name="indicator" placeholder="Example: 185.220.101.45 | secure-login.xyz | SHA256 hash" required>
-                    </div>
-                    <div class="col-lg-2">
-                        <button class="btn cyber-btn w-100">
-                            <i class="bi bi-diagram-3"></i> Correlate
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <br>
-
-        {% if not result %}
-        <div class="pro-panel">
-            <h3>Correlation Engine Overview</h3>
-            <p class="text-secondary">
-                Submit an indicator to generate a relationship graph between threat infrastructure,
-                malware families, MITRE ATT&CK techniques, CVEs and threat actors.
-            </p>
-
-            <div class="bottom">
-                <div class="chart-card">
-                    <h4>IOC</h4>
-                    <p>Input indicator</p>
-                    <span class="badge bg-info">Start Node</span>
-                </div>
-                <div class="chart-card">
-                    <h4>Infrastructure</h4>
-                    <p>IP, domain, hash</p>
-                    <span class="badge bg-warning text-dark">Linked</span>
-                </div>
-                <div class="chart-card">
-                    <h4>Threat Actor</h4>
-                    <p>APT / Group mapping</p>
-                    <span class="badge bg-danger">Attribution</span>
-                </div>
-                <div class="chart-card">
-                    <h4>MITRE + CVE</h4>
-                    <p>Technique and vulnerability</p>
-                    <span class="badge bg-success">Mapped</span>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if result %}
-        <div class="pro-stats">
-            <div class="pro-card danger">
-                <p>Risk Score</p>
-                <h2>{{ result.risk_score }}</h2>
-                <small>Overall Threat</small>
-                <b>{{ result.severity }}</b>
-                <div class="spark"></div>
-            </div>
-            <div class="pro-card success">
-                <p>Threat Actor</p>
-                <h2 style="font-size:22px;">{{ result.actor }}</h2>
-                <small>Attribution</small>
-                <b>Detected</b>
-                <div class="spark"></div>
-            </div>
-            <div class="pro-card success">
-                <p>Malware Family</p>
-                <h2 style="font-size:22px;">{{ result.malware }}</h2>
-                <small>Associated</small>
-                <b>Linked</b>
-                <div class="spark"></div>
-            </div>
-            <div class="pro-card success">
-                <p>MITRE</p>
-                <h2 style="font-size:22px;">{{ result.mitre_id }}</h2>
-                <small>{{ result.mitre_name }}</small>
-                <b>Mapped</b>
-                <div class="spark"></div>
-            </div>
-            <div class="pro-card danger">
-                <p>Confidence</p>
-                <h2>{{ result.confidence }}%</h2>
-                <small>Correlation Confidence</small>
-                <b>{{ result.cve }}</b>
-                <div class="spark"></div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-lg-8">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-diagram-3"></i> Correlation Summary</h3>
-                    </div>
-                    <table class="table table-dark table-hover">
-                        <tr><th width="230">Input Indicator</th><td>{{ result.indicator }}</td></tr>
-                        <tr><th>Threat Actor</th><td>{{ result.actor }}</td></tr>
-                        <tr><th>Malware Family</th><td>{{ result.malware }}</td></tr>
-                        <tr><th>MITRE Technique</th><td>{{ result.mitre_id }} - {{ result.mitre_name }}</td></tr>
-                        <tr><th>MITRE Tactic</th><td>{{ result.tactic }}</td></tr>
-                        <tr><th>Linked CVE</th><td>{{ result.cve }}</td></tr>
-                        <tr>
-                            <th>Severity</th>
-                            <td>
-                                {% if result.severity == "Critical" %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif result.severity == "High" %}
-                                <span class="badge bg-warning text-dark">High</span>
-                                {% elif result.severity == "Medium" %}
-                                <span class="badge bg-info">Medium</span>
-                                {% else %}
-                                <span class="badge bg-success">Low</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-share"></i> Related Infrastructure</h3>
-                    </div>
-                    <table class="table table-dark table-hover">
-                        <tr><th width="230">Related IP</th><td>{{ result.related_ip }}</td></tr>
-                        <tr><th>Related Domain</th><td>{{ result.related_domain }}</td></tr>
-                        <tr><th>Related Hash</th><td style="font-size:12px;">{{ result.related_hash }}</td></tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="chart-card mb-4">
-                    <h4><i class="bi bi-shield-check"></i> Recommendation</h4>
-                    <hr>
-                    <div class="alert alert-warning">{{ result.recommendation }}</div>
-                </div>
-
-                <div class="chart-card">
-                    <h4><i class="bi bi-lightning-charge"></i> Correlation Summary</h4>
-                    <hr>
-                    <table class="table table-dark table-sm">
-                        <tr><th>IOC</th><td>✓</td></tr>
-                        <tr><th>Infrastructure</th><td>✓</td></tr>
-                        <tr><th>Threat Actor</th><td>✓</td></tr>
-                        <tr><th>MITRE</th><td>✓</td></tr>
-                        <tr><th>CVE</th><td>✓</td></tr>
-                        <tr><th>Confidence</th><td>{{ result.confidence }}%</td></tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="pro-panel mb-4">
-            <div class="pro-title">
-                <div>
-                    <h3><i class="bi bi-node-plus"></i> Interactive Correlation Graph</h3>
-                    <p>Visual relationship graph between IOC, infrastructure, malware, actor, MITRE and CVE</p>
-                </div>
-            </div>
-            <div id="correlationGraph" style="height:520px;position:relative;overflow:hidden;border-radius:16px;background:#020617;border:1px solid rgba(56,189,248,.25);"></div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-clock-history"></i> Correlation Timeline</h3>
-                    </div>
-                    <table class="table table-dark table-hover">
-                        {% for item in result.timeline %}
-                        <tr>
-                            <th width="160">{{ item.time }}</th>
-                            <td>{{ item.event }}</td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-diagram-2"></i> Graph Entities</h3>
-                    </div>
-                    <table class="table table-dark table-hover">
-                        {% for node in result.nodes %}
-                        <tr>
-                            <th width="180">{{ node.label }}</th>
-                            <td style="font-size:12px;">{{ node.value }}</td>
-                            <td>
-                                {% if node.level == "Critical" %}
-                                <span class="badge bg-danger">Critical</span>
-                                {% elif node.level == "High" %}
-                                <span class="badge bg-warning text-dark">High</span>
-                                {% elif node.level == "Medium" %}
-                                <span class="badge bg-info">Medium</span>
-                                {% else %}
-                                <span class="badge bg-success">Low</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-arrow-left-right"></i> Correlation Relationships</h3>
-                    </div>
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>From</th>
-                                <th>Relation</th>
-                                <th>To</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for edge in result.edges %}
-                            <tr>
-                                <td>{{ edge.from }}</td>
-                                <td><span class="badge bg-primary">{{ edge.relation }}</span></td>
-                                <td>{{ edge.to }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="pro-panel mb-4">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-info-circle"></i> Correlation Insights</h3>
-                    </div>
-                    <ul class="text-secondary">
-                        <li>IOC has been linked with <strong>{{ result.actor }}</strong>.</li>
-                        <li>Malware family identified as <strong>{{ result.malware }}</strong>.</li>
-                        <li>Related infrastructure has been discovered.</li>
-                        <li>MITRE ATT&CK technique <strong>{{ result.mitre_id }}</strong> has been mapped.</li>
-                        <li>Vulnerability <strong>{{ result.cve }}</strong> may be exploited.</li>
-                        <li>Correlation confidence: <strong>{{ result.confidence }}%</strong>.</li>
-                        <li>Overall Severity: <strong>{{ result.severity }}</strong>.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        {% endif %}
-
-    </main>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-diagram-3-fill text-info"></i> Multi-Entity Threat Correlation Engine
+        </h1>
+        <p class="text-secondary mb-0 small">Graph-based link analysis connecting indicators, C2 infrastructure, malware strains, MITRE TTPs, CVEs, and threat actors.</p>
+    </div>
+    {% if result %}
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-danger p-2 px-3 fw-bold">{{ result.severity|upper }} SEVERITY</span>
+        <button class="btn btn-outline-info btn-sm" onclick="exportGraphStix('{{ result.indicator }}')">
+            <i class="bi bi-download"></i> Export STIX 2.1
+        </button>
+    </div>
+    {% endif %}
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
+<!-- Search / Submission Form -->
+<div class="cyber-card p-4 mb-4">
+    <form method="POST">
+        <label class="form-label fw-bold text-light mb-2">Submit Indicator, Infrastructure, Threat Actor, or Vulnerability for Correlation</label>
+        <div class="input-group">
+            <span class="input-group-text bg-dark border-secondary text-info"><i class="bi bi-node-plus"></i></span>
+            <input type="text" name="indicator" class="form-control cyber-input" placeholder="Enter IP, Domain, SHA256 Hash, CVE ID, or Threat Actor (e.g. 185.220.101.45, CVE-2024-3094, APT29, LockBit)..." value="{{ indicator or '' }}" required>
+            <button class="btn cyber-btn px-4" type="submit">
+                <i class="bi bi-diagram-3"></i> Correlate
+            </button>
+        </div>
+
+        <!-- Highlighted Sample Presets Heading & Interactive Pills -->
+        <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+            <span class="sample-heading-highlight">
+                <i class="bi bi-diagram-3-fill text-warning"></i> SAMPLE CORRELATION TARGETS:
+            </span>
+            <a href="{{ url_for('correlation_engine', indicator='185.220.101.45') }}" class="sample-preset-pill danger">
+                <i class="bi bi-hdd-network-fill"></i> 185.220.101.45 <span class="badge bg-danger ms-1" style="font-size:9px;">C2 Node</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='APT29') }}" class="sample-preset-pill danger">
+                <i class="bi bi-people-fill"></i> APT29 <span class="badge bg-danger ms-1" style="font-size:9px;">Cozy Bear</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='Volt Typhoon') }}" class="sample-preset-pill warning">
+                <i class="bi bi-lightning-fill"></i> Volt Typhoon <span class="badge bg-warning text-dark ms-1" style="font-size:9px;">Critical Infra</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='LockBit') }}" class="sample-preset-pill danger">
+                <i class="bi bi-shield-slash-fill"></i> LockBit 3.0 <span class="badge bg-danger ms-1" style="font-size:9px;">Ransomware</span>
+            </a>
+            <a href="{{ url_for('correlation_engine', indicator='CVE-2024-3094') }}" class="sample-preset-pill cyan">
+                <i class="bi bi-bug-fill"></i> CVE-2024-3094 <span class="badge bg-info text-dark ms-1" style="font-size:9px;">XZ Backdoor</span>
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if not result %}
+<!-- Engine Capabilities Overview -->
+<div class="cyber-card">
+    <div class="pro-title">
+        <h3 class="section-heading-highlight"><i class="bi bi-info-circle text-info"></i> How CTICD Correlation Works</h3>
+    </div>
+    <p class="text-secondary">
+        CTICD synthesizes multi-source intelligence to reconstruct the adversary's attack campaign.
+        Submitting any indicator automatically discovers shared C2 infrastructure, attributes the operational threat group,
+        maps the technique to the MITRE ATT&CK Matrix, links weaponized CVE vulnerabilities, and constructs a Diamond Model profile.
+    </p>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-3">
+            <div class="p-3 rounded border border-secondary border-opacity-25 bg-dark">
+                <h6 class="text-info mb-1"><i class="bi bi-shield-shaded"></i> 1. Ingestion</h6>
+                <p class="small text-muted mb-0">Deconstructs input IOC, computes cryptographic seeds, and queries the local CTI cache.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 rounded border border-secondary border-opacity-25 bg-dark">
+                <h6 class="text-danger mb-1"><i class="bi bi-people-fill"></i> 2. Attribution</h6>
+                <p class="small text-muted mb-0">Correlates operational infrastructure with state-sponsored APTs and ransomware groups.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 rounded border border-secondary border-opacity-25 bg-dark">
+                <h6 class="text-warning mb-1"><i class="bi bi-diagram-3"></i> 3. Graph Linking</h6>
+                <p class="small text-muted mb-0">Builds semantic relationships between malware, C2 IPs, domains, hashes, and targeted sectors.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 rounded border border-secondary border-opacity-25 bg-dark">
+                <h6 class="text-success mb-1"><i class="bi bi-shield-check"></i> 4. Countermeasures</h6>
+                <p class="small text-muted mb-0">Auto-generates defensive YARA signatures, Snort IDS rules, and Sigma SIEM detection queries.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% if result %}
+<!-- Results KPI Row -->
+<div class="pro-stats">
+    <div class="pro-card danger">
+        <p>Composite Risk Score</p>
+        <h2>{{ result.risk_score }} / 100</h2>
+        <small>Threat Level</small>
+        <b>{{ result.severity }}</b>
+    </div>
+    <div class="pro-card danger">
+        <p>Attributed Threat Group</p>
+        <h2 style="font-size:22px;">{{ result.actor }}</h2>
+        <small>{{ result.actor_origin }}</small>
+        <b>Attributed</b>
+    </div>
+    <div class="pro-card cyan">
+        <p>Primary Malware / Tool</p>
+        <h2 style="font-size:22px;">{{ result.malware }}</h2>
+        <small>{{ result.malware_category }}</small>
+        <b>Linked</b>
+    </div>
+    <div class="pro-card warning">
+        <p>MITRE ATT&CK</p>
+        <h2 style="font-size:22px;">{{ result.mitre_id }}</h2>
+        <small>{{ result.mitre_name }}</small>
+        <b>{{ result.tactic }}</b>
+    </div>
+    <div class="pro-card success">
+        <p>Correlation Confidence</p>
+        <h2>{{ result.confidence }}%</h2>
+        <small>Weaponized CVE</small>
+        <b>{{ result.cve }}</b>
+    </div>
+</div>
+
+<!-- Interactive Network Graph -->
+<div class="cyber-card mb-4">
+    <div class="pro-title">
+        <div>
+            <h3 class="section-heading-highlight"><i class="bi bi-share-fill text-info"></i> Interactive Threat Relationship Graph</h3>
+            <p>Visual mapping of adversary infrastructure, malware capabilities, CVE exploitation, and victim sectors</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="togglePhysicsBtn">
+                <i class="bi bi-pause"></i> Freeze Physics
+            </button>
+            <button class="btn btn-sm btn-outline-info" id="fitGraphBtn">
+                <i class="bi bi-arrows-fullscreen"></i> Fit View
+            </button>
+        </div>
+    </div>
+
+    <div id="correlationGraph" style="height: 520px; border-radius: 12px; background: #01040d; border: 1px solid rgba(56, 189, 248, 0.25);"></div>
+    <div class="d-flex align-items-center justify-content-between p-2 text-muted small border-top border-secondary border-opacity-25 mt-2">
+        <span><i class="bi bi-hand-index-thumb"></i> Click and drag nodes to explore relationships. Zoom with mouse wheel.</span>
+        <span>Graph Nodes: {{ result.nodes|length }} | Edges: {{ result.edges|length }}</span>
+    </div>
+</div>
+
+<!-- Diamond Model & Kill Chain Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="cyber-card h-100">
+            <div class="pro-title">
+                <h3 class="section-heading-highlight"><i class="bi bi-gem text-info"></i> Diamond Model of Intrusion</h3>
+            </div>
+            <table class="table table-dark table-sm mb-0">
+                <tr>
+                    <th width="160"><i class="bi bi-person-fill text-danger"></i> Adversary:</th>
+                    <td class="fw-bold text-danger">{{ result.diamond_model.adversary }} ({{ result.actor_origin }})</td>
+                </tr>
+                <tr>
+                    <th><i class="bi bi-cpu text-warning"></i> Capability:</th>
+                    <td>{{ result.diamond_model.capability }} ({{ result.malware }})</td>
+                </tr>
+                <tr>
+                    <th><i class="bi bi-hdd-network text-info"></i> Infrastructure:</th>
+                    <td class="font-monospace text-info">{{ result.related_ip }} / {{ result.related_domain }} ({{ result.asn }})</td>
+                </tr>
+                <tr>
+                    <th><i class="bi bi-bullseye text-success"></i> Victim Sector:</th>
+                    <td class="text-success">{{ result.diamond_model.victim }} ({{ result.targeted_sectors|join(', ') }})</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="cyber-card h-100">
+            <div class="pro-title">
+                <h3 class="section-heading-highlight"><i class="bi bi-shield-slash text-danger"></i> Cyber Kill Chain Progression</h3>
+            </div>
+            <div class="p-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small text-muted">Current Observed Phase:</span>
+                    <span class="badge bg-danger p-2">{{ result.kill_chain }}</span>
+                </div>
+                <div class="progress mb-3" style="height: 10px; background: #020617;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: 85%;"></div>
+                </div>
+                <small class="text-secondary">
+                    Intrusion narrative: Initial recon led to delivery via <b>{{ result.mitre_id }}</b>.
+                    Exploitation weaponizes <b>{{ result.cve }}</b> to drop <b>{{ result.malware }}</b> with outbound beacons contacting <b>{{ result.related_ip }}</b>.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Defense Countermeasures & Rules -->
+<div class="cyber-card mb-4">
+    <div class="pro-title">
+        <h3 class="section-heading-highlight"><i class="bi bi-shield-check text-success"></i> Automated SOC Countermeasures</h3>
+        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">Ready to Deploy</span>
+    </div>
+
+    <div class="alert alert-warning border border-warning border-opacity-50 text-light" style="background: rgba(245, 158, 11, 0.1);">
+        <i class="bi bi-shield-exclamation text-warning me-2"></i>
+        <strong>Actionable Guidance:</strong> {{ result.recommendation }}
+    </div>
+
+    <ul class="nav nav-pills mb-3" id="ruleTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active btn-sm" id="yara-tab" data-bs-toggle="pill" data-bs-target="#yara-content" type="button">YARA Rule</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm" id="snort-tab" data-bs-toggle="pill" data-bs-target="#snort-content" type="button">Snort / Suricata IDS</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm" id="sigma-tab" data-bs-toggle="pill" data-bs-target="#sigma-content" type="button">Sigma SIEM Query</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="ruleTabsContent">
+        <div class="tab-pane fade show active" id="yara-content">
+            <div class="code-box">
+                <button class="code-copy-btn" onclick="copyCode(this, 'yaraCode')"><i class="bi bi-clipboard"></i> Copy</button>
+                <code id="yaraCode">{{ result.yara_rule }}</code>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="snort-content">
+            <div class="code-box">
+                <button class="code-copy-btn" onclick="copyCode(this, 'snortCode')"><i class="bi bi-clipboard"></i> Copy</button>
+                <code id="snortCode">{{ result.snort_rule }}</code>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="sigma-content">
+            <div class="code-box">
+                <button class="code-copy-btn" onclick="copyCode(this, 'sigmaCode')"><i class="bi bi-clipboard"></i> Copy</button>
+                <code id="sigmaCode">{{ result.sigma_query }}</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graph Data JSON -->
 <script id="graph-data" type="application/json">
 {
-    "nodes": [
-        {% for node in result.nodes %}
-        {
-            "id": {{ node.id | tojson }},
-            "label": {{ (node.label ~ "\n" ~ node.value) | tojson }},
-            "level": {{ node.level | tojson }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ],
-    "edges": [
-        {% for edge in result.edges %}
-        {
-            "from": {{ edge.from | tojson }},
-            "to": {{ edge.to | tojson }},
-            "label": {{ edge.relation | tojson }}
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ]
+    "nodes": {{ result.nodes | tojson }},
+    "edges": {{ result.edges | tojson }}
 }
 </script>
 
@@ -343,77 +264,79 @@ document.addEventListener("DOMContentLoaded", function () {
     const graphElement = document.getElementById("correlationGraph");
     const dataElement = document.getElementById("graph-data");
 
-    if (!graphElement || !dataElement || typeof vis === "undefined") {
-        return;
-    }
+    if (!graphElement || !dataElement || typeof vis === "undefined") return;
 
     const graphData = JSON.parse(dataElement.textContent);
 
-    function getNodeColor(level) {
-        if (level === "Critical") return "#ef4444";
-        if (level === "High") return "#f97316";
-        if (level === "Medium") return "#eab308";
-        return "#22c55e";
+    const nodes = new vis.DataSet(graphData.nodes.map(n => ({
+        id: n.id,
+        label: n.label,
+        title: n.title,
+        shape: n.shape || "dot",
+        size: n.size || 28,
+        color: {
+            background: n.color || "#0ea5e9",
+            border: "#ffffff",
+            highlight: { background: "#ffffff", border: n.color || "#0ea5e9" }
+        },
+        font: { color: "#ffffff", size: 12, face: "sans-serif" }
+    })));
+
+    const edges = new vis.DataSet(graphData.edges.map(e => ({
+        from: e.from,
+        to: e.to,
+        label: e.label,
+        arrows: "to",
+        color: { color: "rgba(56, 189, 248, 0.6)", highlight: "#38bdf8" },
+        font: { color: "#94a3b8", size: 10, align: "middle", background: "#020617" },
+        smooth: { type: "continuous" }
+    })));
+
+    const network = new vis.Network(graphElement, { nodes, edges }, {
+        physics: {
+            enabled: true,
+            barnesHut: { gravitationalConstant: -3000, centralGravity: 0.3, springLength: 120 }
+        },
+        interaction: { hover: true, tooltipDelay: 200 }
+    });
+
+    const togglePhysicsBtn = document.getElementById("togglePhysicsBtn");
+    let physicsActive = true;
+    if (togglePhysicsBtn) {
+        togglePhysicsBtn.addEventListener("click", function () {
+            physicsActive = !physicsActive;
+            network.setOptions({ physics: { enabled: physicsActive } });
+            togglePhysicsBtn.innerHTML = physicsActive ? '<i class="bi bi-pause"></i> Freeze Physics' : '<i class="bi bi-play"></i> Enable Physics';
+        });
     }
 
-    const nodes = new vis.DataSet(
-        graphData.nodes.map(function (node) {
-            return {
-                id: node.id,
-                label: node.label,
-                shape: "dot",
-                size: 28,
-                color: getNodeColor(node.level)
-            };
-        })
-    );
-
-    const edges = new vis.DataSet(
-        graphData.edges.map(function (edge) {
-            return {
-                from: edge.from,
-                to: edge.to,
-                label: edge.label,
-                arrows: "to",
-                color: "#38bdf8",
-                font: {
-                    color: "#ffffff",
-                    size: 12
-                }
-            };
-        })
-    );
-
-    new vis.Network(
-        graphElement,
-        {
-            nodes: nodes,
-            edges: edges
-        },
-        {
-            physics: {
-                enabled: true,
-                stabilization: false
-            },
-            interaction: {
-                hover: true
-            },
-            nodes: {
-                borderWidth: 2,
-                borderWidthSelected: 3,
-                font: {
-                    color: "#ffffff",
-                    size: 14
-                }
-            },
-            edges: {
-                smooth: true,
-                width: 2
-            }
-        }
-    );
+    const fitGraphBtn = document.getElementById("fitGraphBtn");
+    if (fitGraphBtn) {
+        fitGraphBtn.addEventListener("click", function () {
+            network.fit({ animation: { duration: 600 } });
+        });
+    }
 });
+
+function exportGraphStix(indicator) {
+    fetch("/api/export/stix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ indicator: indicator })
+    })
+    .then(r => r.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `stix_bundle_${indicator}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    });
+}
 </script>
+
 {% endif %}
 
 {% endblock %}

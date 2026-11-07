@@ -1,33 +1,62 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <h2>Edit Profile</h2>
-        <p class="text-secondary">Update your CTICD account information</p>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white">
+            <i class="bi bi-pencil-square text-info"></i> Edit Analyst Profile
+        </h1>
+        <p class="text-secondary mb-0 small">Update your operational identity and communication endpoints.</p>
+    </div>
+    <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Back to Profile
+    </a>
+</div>
 
-        <form method="POST">
-            <div class="mb-3">
-                <label>Full Name</label>
-                <input type="text" name="name" class="form-control cyber-input" value="{{ current_user.name or '' }}" required>
-            </div>
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="cyber-card p-4">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">Full Name</label>
+                    <input type="text" name="name" class="form-control cyber-input" value="{{ current_user.name }}" required>
+                </div>
 
-            <div class="mb-3">
-                <label>Email Address</label>
-                <input type="email" class="form-control cyber-input" value="{{ current_user.email or '' }}" disabled>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Registered Email Address</label>
+                    <input type="email" class="form-control cyber-input" value="{{ current_user.email }}" disabled>
+                    <small class="text-muted" style="font-size:10px;">Email is locked to primary certificate authority.</small>
+                </div>
 
-            <div class="mb-3">
-                <label>Mobile Number</label>
-                <input type="text" name="mobile" class="form-control cyber-input" value="{{ current_user.mobile if current_user.mobile is defined else '' }}">
-            </div>
+                <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">Operational Role</label>
+                    <select name="role" class="form-select bg-dark text-light border-secondary">
+                        <option value="Lead Threat Hunter" {% if current_user.role == 'Lead Threat Hunter' %}selected{% endif %}>Lead Threat Hunter</option>
+                        <option value="Security Analyst" {% if current_user.role == 'Security Analyst' %}selected{% endif %}>Security Analyst</option>
+                        <option value="SOC Tier 2 Responder" {% if current_user.role == 'SOC Tier 2 Responder' %}selected{% endif %}>SOC Tier 2 Responder</option>
+                        <option value="Incident Commander" {% if current_user.role == 'Incident Commander' %}selected{% endif %}>Incident Commander</option>
+                    </select>
+                </div>
 
-            <button type="submit" class="btn cyber-btn w-100">Save Changes</button>
-        </form>
+                <div class="mb-3">
+                    <label class="form-label text-light fw-bold small">Assigned Department / Enclave</label>
+                    <input type="text" name="department" class="form-control cyber-input" value="{{ current_user.department or 'Cyber Threat Intelligence Operations' }}">
+                </div>
 
-        <br>
+                <div class="mb-4">
+                    <label class="form-label text-light fw-bold small">Contact Mobile / Secure Comms</label>
+                    <input type="text" name="mobile" class="form-control cyber-input" value="{{ current_user.mobile or '' }}" placeholder="+1 (555) 000-0000">
+                </div>
 
-        <a href="{{ url_for('profile') }}">Back to Profile</a>
+                <div class="d-flex align-items-center justify-content-between">
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                    <button type="submit" class="btn cyber-btn">
+                        <i class="bi bi-check-lg"></i> Save Profile Changes
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

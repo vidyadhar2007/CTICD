@@ -1,258 +1,402 @@
 {% extends "base.html" %}
-{% block content %}
 
+{% block content %}
 <script>
 window.MAP_KEY = "{{ MAP_KEY }}";
 </script>
 
-<div class="pro-layout">
-    <aside class="pro-sidebar">
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
-            </div>
-        </div>
-
-        <div class="pro-menu">
-            <a class="active" href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
-            <a href="{{ url_for('threat_map') }}"><i class="bi bi-globe2"></i> Threat Map</a>
-            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
-            <a href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
-            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
-            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
-            <a href="{{ url_for('reports') }}"><i class="bi bi-file-earmark-text"></i> Reports</a>
-            <a href="{{ url_for('profile') }}"><i class="bi bi-person-circle"></i> Profile</a>
-            <a href="{{ url_for('alerts') }}"><i class="bi bi-bell"></i> Alerts</a>
-            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
-        </div>
-
-        <div class="pro-system">
-            <h5>System Status</h5>
-            <p class="green">● All Systems Operational</p>
-            <hr>
-            <p>Threat Intelligence Feeds</p>
-            <h6>9 / 9 Active</h6>
-            <p>Last Data Update</p>
-            <h6 id="systemTime">Loading...</h6>
-            <p>Server Uptime</p>
-            <h6>2d 14h 32m</h6>
-        </div>
-    </aside>
-
-    <main class="pro-main">
-        <div class="pro-top">
-            <div>
-                <h1>Dashboard</h1>
-                <p>Real-time Cyber Threat Intelligence Overview</p>
-            </div>
-
-            <div class="dropdown">
-                <a class="d-flex align-items-center gap-3 text-decoration-none text-light dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                    <div class="pro-user">
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div>
-                        <strong>{{ current_user.name }}</strong>
-                        <p class="mb-0">Security Analyst</p>
-                    </div>
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('profile') }}">
-                            <i class="bi bi-person-circle"></i> My Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('edit_profile') }}">
-                            <i class="bi bi-pencil-square"></i> Edit Profile
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-                <div class="pro-stats">
-            <div class="pro-card danger">
-                <p>Threat Level</p>
-                <h2>{{ stats.threat_level }}</h2>
-                <small>Overall Risk Score</small>
-                <b>{{ stats.risk_score }} / 100</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Live Attacks</p>
-                <h2 id="liveAttackCount">{{ stats.live_attacks }}</h2>
-                <small>Last 24 Hours</small>
-                <b>↑ 23.7%</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Malicious IPs</p>
-                <h2 id="maliciousIpCount">{{ stats.malicious_ips }}</h2>
-                <small>Last 24 Hours</small>
-                <b>↑ 15.3%</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>IOC Detected</p>
-                <h2 id="iocCount">{{ stats.ioc_detected }}</h2>
-                <small>Last 24 Hours</small>
-                <b>↑ 31.8%</b>
-                <div class="spark"></div>
-            </div>
-
-            <div class="pro-card success">
-                <p>Countries Attacked</p>
-                <h2 id="countryCount">{{ stats.countries_attacked }}</h2>
-                <small>Last 24 Hours</small>
-                <b>↑ 8.6%</b>
-                <div class="spark"></div>
-            </div>
-        </div>
-
-        <div class="pro-grid">
-            <section class="pro-panel">
-                <div class="pro-title">
-                    <div>
-                        <h3>LIVE CYBER THREAT MAP <span class="live">● LIVE</span></h3>
-                        <p>Real-time source to target attack visualization</p>
-                    </div>
-                    <select>
-                        <option>All Attack Types</option>
-                        <option>DDoS</option>
-                        <option>Malware</option>
-                        <option>Brute Force</option>
-                        <option>Phishing</option>
-                    </select>
-                </div>
-
-                <div class="real-map-box">
-                    <div id="realCyberMap"></div>
-
-                    <div class="legend">
-                        <h5>Attack Intensity</h5>
-                        <p><i class="r"></i>Critical</p>
-                        <p><i class="o"></i>High</p>
-                        <p><i class="y"></i>Medium</p>
-                        <p><i class="g"></i>Low</p>
-                    </div>
-
-                    <div class="attackbox">
-                        <h5>LIVE ATTACK</h5>
-                        <p><b>From:</b> <span id="liveFrom">Loading...</span></p>
-                        <p><b>To:</b> <span id="liveTo">Loading...</span></p>
-                        <p><b>Type:</b> <span id="liveType">Loading...</span></p>
-                        <p><b>Time:</b> <span id="liveTime">Loading...</span></p>
-                    </div>
-                </div>
-            </section>
-                        <section class="pro-panel">
-                <div class="pro-title">
-                    <h3>RECENT ALERTS</h3>
-                    <a href="{{ url_for('threat_feed') }}">View All</a>
-                </div>
-
-                <div id="alertList">
-                    {% for alert in recent_alerts %}
-                    <div class="alert-item">
-                        <div class="dot {{ alert.level }}"></div>
-
-                        <div>
-                            <h5>{{ alert.type }}</h5>
-                            <p>{{ alert.from }} → {{ alert.to }}</p>
-                        </div>
-
-                        <span>{{ alert.time }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <br>
-
-                <a href="{{ url_for('threat_feed') }}">
-                    View All Alerts →
-                </a>
-            </section>
-        </div>
-
-        <div class="bottom">
-
-            <div class="chart-card">
-                <h4>Top Attack Origins</h4>
-                <p>Last 24 Hours</p>
-                <canvas id="originChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <h4>Threat Types Distribution</h4>
-                <p>Last 24 Hours</p>
-                <canvas id="typeChart"></canvas>
-            </div>
-
-            <div class="chart-card">
-                <h4>Top Malicious IPs</h4>
-                <p>Last 24 Hours</p>
-
-                {% for item in malicious_ips %}
-                <div class="ip-row">
-                    <span>{{ item.ip }}</span>
-                    <span>{{ item.country }}</span>
-                    <b>{{ item.hits }}</b>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div class="chart-card">
-                <h4>Threat Level Over Time</h4>
-                <p>Last 7 Days</p>
-                <canvas id="lineChart"></canvas>
-            </div>
-
-        </div>
-            </main>
+<!-- Top Operations Command Header -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white d-flex align-items-center gap-2">
+            <i class="bi bi-shield-shaded text-info"></i> Security Operations Command Center
+        </h1>
+        <p class="text-secondary mb-0 small">Real-time global telemetry, automated adversary correlation, and perimeter defense posture.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button class="radar-audio-btn" onclick="toggleRadarAudio(this)">
+            <i class="bi bi-volume-mute"></i> Audio Muted
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleStreamPause(this)">
+            <i class="bi bi-pause-fill"></i> Pause Stream
+        </button>
+        <a href="{{ url_for('threat_map') }}" class="btn cyber-btn btn-sm">
+            <i class="bi bi-globe2"></i> Live Threat Map
+        </a>
+    </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded",function(){
+<!-- Primary Tactical KPI Metrics -->
+<div class="pro-stats">
+    <div class="pro-card danger">
+        <p>Global Threat Posture</p>
+        <h2>{{ stats.threat_level }}</h2>
+        <small>Active SOC Condition</small>
+        <b>{{ stats.defcon }}</b>
+    </div>
 
-    const profileBtn=document.querySelector(".dropdown-toggle");
+    <div class="pro-card warning">
+        <p>Live Intercepted Attacks</p>
+        <h2 id="liveAttackCount">{{ stats.live_attacks }}</h2>
+        <small>Real-Time Packet Sensors</small>
+        <b>↑ ACTIVE</b>
+    </div>
 
-    if(profileBtn){
-        profileBtn.addEventListener("click",function(e){
-            e.preventDefault();
-        });
-    }
+    <div class="pro-card danger">
+        <p>Blocked C2 Nodes</p>
+        <h2 id="maliciousIpCount">{{ stats.malicious_ips }}</h2>
+        <small>Perimeter Drop Rules</small>
+        <b>99.8% Containment</b>
+    </div>
 
-    const systemTime=document.getElementById("systemTime");
+    <div class="pro-card cyan">
+        <p>Correlated IOCs</p>
+        <h2 id="iocCount">{{ stats.ioc_detected }}</h2>
+        <small>Attributed to Adversaries</small>
+        <b>Attributed</b>
+    </div>
 
-    function updateClock(){
-        const now=new Date();
+    <div class="pro-card success">
+        <p>Targeted Sovereign States</p>
+        <h2 id="countryCount">{{ stats.countries_attacked }}</h2>
+        <small>Geopolitical Telemetry</small>
+        <b>Tracked</b>
+    </div>
+</div>
 
-        systemTime.innerHTML=now.toLocaleTimeString("en-IN",{
-            hour:"2-digit",
-            minute:"2-digit",
-            second:"2-digit"
-        });
-    }
+<!-- Primary Operations Grid: Live Map + Tactical Stream Terminal -->
+<div class="pro-grid">
+    <!-- Live Cyber Threat Map -->
+    <section class="cyber-card p-0">
+        <div class="p-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h3 class="h6 mb-0 text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-radar text-danger"></i> LIVE GLOBAL ATTACK TRAJECTORY MAP
+                    <span class="badge bg-danger ms-2" style="font-size:9px;">REAL-TIME SENSORS</span>
+                </h3>
+                <small class="text-secondary">Ballistic origin-to-destination attack trajectories with accurate geospatial coordinates</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('threat_map') }}" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-arrows-fullscreen"></i> Fullscreen Map
+                </a>
+            </div>
+        </div>
 
-    updateClock();
-    setInterval(updateClock,1000);
+        <div class="real-map-box">
+            <div class="map-scanline"></div>
+            <div id="realCyberMap"></div>
 
-});
-</script>
+            <div class="map-legend">
+                <div class="fw-bold mb-1 text-light">Intensity</div>
+                <div><span style="background:#ef4444;"></span>Critical C2 / Ransomware</div>
+                <div><span style="background:#f97316;"></span>High (DDoS, Exploits)</div>
+                <div><span style="background:#eab308;"></span>Medium (Probes, SQLi)</div>
+            </div>
+
+            <!-- Tactical HUD Box -->
+            <div class="map-hud-box">
+                <div class="fw-bold text-info mb-1 d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-shield-exclamation text-danger"></i> ACTIVE INTERCEPT TELEMETRY</span>
+                    <span class="badge bg-danger" style="font-size:9px;">LIVE WIRE</span>
+                </div>
+                <div class="text-truncate mb-1"><b>Origin:</b> <span id="liveFrom" class="text-light">Loading source...</span></div>
+                <div class="text-truncate mb-1"><b>Target:</b> <span id="liveTo" class="text-light">Loading target...</span></div>
+                <div class="mb-1"><b>Vector:</b> <span id="liveType">Monitoring wire...</span></div>
+                <div class="mb-1 text-truncate"><b>MITRE ATT&CK:</b> <span id="liveMitre" class="text-info font-monospace small">T1071.001</span></div>
+                <div class="d-flex justify-content-between text-muted small mt-1 pt-1 border-top border-secondary border-opacity-25">
+                    <span><i class="bi bi-activity"></i> <span id="liveBandwidth">Calculating...</span></span>
+                    <span id="liveTime" class="font-monospace">--:--:-- IST</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tactical Real-Time Stream Terminal -->
+    <section class="tactical-terminal">
+        <div class="tactical-terminal-header">
+            <div>
+                <strong class="text-white small d-flex align-items-center gap-2">
+                    <i class="bi bi-terminal-fill text-info"></i> REAL-TIME INTERCEPT TERMINAL
+                </strong>
+                <small class="text-secondary" style="font-size:10px;">Click any telemetry event to inspect full forensic dossier</small>
+            </div>
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25" style="font-size:10px;">
+                <i class="status-dot"></i> Live Stream
+            </span>
+        </div>
+
+        <div class="tactical-stream-body" id="tacticalStreamBody">
+            {% for item in initial_attacks %}
+            <div class="attack-row-item {{ item.attack.level }}" data-event-id="{{ item.event_id }}" onclick='openTacticalDossier({{ item|tojson }})'>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge {% if item.attack.level == 'critical' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:10px;">
+                            {{ item.attack.level|upper }}
+                        </span>
+                        <strong class="text-white small">{{ item.attack.type }}</strong>
+                    </div>
+                    <span class="font-monospace small text-info fw-bold" style="font-size:10px;">{{ item.timestamp_time }} IST</span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between text-secondary small" style="font-size:11.5px;">
+                    <span>
+                        {{ item.source.flag }} {{ item.source.city }} <i class="bi bi-arrow-right text-info"></i> {{ item.target.flag }} {{ item.target.city }}
+                        <span class="text-muted">({{ item.target.sector.split(' ')[0] }})</span>
+                    </span>
+                    <span class="badge bg-dark border border-secondary text-info font-monospace">{{ item.mitre.id }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="p-2 border-top border-secondary border-opacity-25 text-center bg-dark">
+            <a href="{{ url_for('threat_map') }}" class="small text-info text-decoration-none">
+                <i class="bi bi-binoculars"></i> Open Global Threat Map Command View →
+            </a>
+        </div>
+    </section>
+</div>
+
+<!-- Interactive MITRE ATT&CK Enterprise Matrix Heatmap -->
+<div class="cyber-card mb-4 mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <h3 class="h6 mb-0 text-white fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-grid-3x3-gap-fill text-warning"></i> ENTERPRISE MITRE ATT&CK® TACTIC & TECHNIQUE HEATMAP
+                <span class="badge bg-warning text-dark ms-2" style="font-size:9px;">REAL-TIME TTP CORRELATION</span>
+            </h3>
+            <small class="text-secondary">Click any tactical cell to inspect detection signatures, attributed adversaries, and correlation graph</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); color:#fca5a5; font-size:10px;">Critical (Active C2)</span>
+            <span class="badge" style="background:rgba(249,115,22,0.2); border:1px solid rgba(249,115,22,0.5); color:#fdba74; font-size:10px;">High (Exploitation)</span>
+            <span class="badge" style="background:rgba(234,179,8,0.2); border:1px solid rgba(234,179,8,0.5); color:#fde047; font-size:10px;">Medium</span>
+            <span class="badge" style="background:rgba(14,165,233,0.2); border:1px solid rgba(14,165,233,0.5); color:#7dd3fc; font-size:10px;">Low / Probing</span>
+        </div>
+    </div>
+
+    <div class="mitre-heatmap-container">
+        <!-- Reconnaissance -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Reconnaissance</span>
+                <span class="badge bg-dark text-info">TA0043</span>
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Reconnaissance', 'T1595', 'Active Scanning', 'Volt Typhoon', 'alert tcp any any -> $HOME_NET any (msg:\'Active Port Scan Detected\'; flags:S; threshold:type both, track by_src, count 30, seconds 10; sid:2001595;)')">
+                <strong>T1595</strong> Active Scanning
+            </div>
+            <div class="mitre-tech-card heat-low" onclick="inspectMitreTechnique('Reconnaissance', 'T1596', 'Search Open Technical Databases', 'Scattered Spider', 'alert dns any any -> any any (msg:\'DNS Zone Transfer Query Attempt\'; content:\'|00 00 fc|\'; sid:2001596;)')">
+                <strong>T1596</strong> OSINT Search
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Reconnaissance', 'T1589', 'Gather Victim Identity Info', 'Lazarus Group', 'alert http any any -> any any (msg:\'Employee Profile Scraping Observed\'; sid:2001589;)')">
+                <strong>T1589</strong> Identity Scrape
+            </div>
+        </div>
+
+        <!-- Initial Access -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Initial Access</span>
+                <span class="badge bg-danger">TA0001</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Initial Access', 'T1190', 'Exploit Public-Facing App', 'Volt Typhoon / UNC3944', 'alert tcp any any -> $HTTP_SERVERS 8080 (msg:\'CVE-2024-1709 ScreenConnect Auth Bypass\'; flow:to_server,established; content:\'/SetupWizard.aspx/CreateAdmin\'; nocase; sid:2001190;)')">
+                <strong>T1190</strong> Exploit Public App
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Initial Access', 'T1566', 'Phishing: Spearphishing Link', 'APT29 Cozy Bear', 'alert http $HOME_NET any -> $EXTERNAL_NET any (msg:\'Phishing Domain Beaconing\'; content:\'auth-secure-update.xyz\'; nocase; sid:2001566;)')">
+                <strong>T1566</strong> Spearphishing
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Initial Access', 'T1078', 'Valid Accounts', 'Scattered Spider', 'alert tcp any any -> $AUTH_SERVERS 443 (msg:\'MFA Fatigue Burst Login Attempt\'; threshold:type threshold, track by_src, count 10, seconds 60; sid:2001078;)')">
+                <strong>T1078</strong> Valid Accounts
+            </div>
+        </div>
+
+        <!-- Execution -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Execution</span>
+                <span class="badge bg-danger">TA0002</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Execution', 'T1059.001', 'PowerShell Scripting', 'LockBit 3.0', 'alert process any any (msg:\'Encoded PowerShell Exec Detected\'; content:\'-enc\'; nocase; sid:2001059;)')">
+                <strong>T1059.001</strong> PowerShell
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Execution', 'T1059.003', 'Windows Command Shell', 'RedLine Stealer', 'alert process any any (msg:\'cmd.exe executing hidden in temp directory\'; sid:2001060;)')">
+                <strong>T1059.003</strong> Windows Shell
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Execution', 'T1204', 'User Execution: Malicious File', 'Emotet', 'alert smtp any any -> $HOME_NET 25 (msg:\'Macro-Enabled Document Delivered\'; file_data; content:\'vbaProject.bin\'; sid:2001204;)')">
+                <strong>T1204</strong> User Execution
+            </div>
+        </div>
+
+        <!-- Persistence -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Persistence</span>
+                <span class="badge bg-warning text-dark">TA0003</span>
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Persistence', 'T1547.001', 'Registry Run Keys / Startup', 'Cobalt Strike', 'alert registry any any (msg:\'Suspicious Run Key Modification: CurrentVersion\\Run\'; sid:2001547;)')">
+                <strong>T1547.001</strong> Run Keys
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Persistence', 'T1053.005', 'Scheduled Task / Cron', 'Volt Typhoon', 'alert process any any (msg:\'schtasks.exe creating persistent elevated task\'; sid:2001053;)')">
+                <strong>T1053.005</strong> Scheduled Task
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Persistence', 'T1543', 'Create or Modify System Process', 'LockBit 3.0', 'alert process any any (msg:\'New Windows Service Installation\'; content:\'sc.exe create\'; sid:2001543;)')">
+                <strong>T1543</strong> System Service
+            </div>
+        </div>
+
+        <!-- Privilege Escalation -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Priv Escalation</span>
+                <span class="badge bg-danger">TA0004</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Privilege Escalation', 'T1068', 'Exploitation for Priv Escalation', 'Lazarus Group', 'alert tcp any any -> any any (msg:\'CVE-2024-21887 Ivanti ICS Priv Escalation Exploit\'; content:\'/api/v1/cav/client/status/\'; sid:2001068;)')">
+                <strong>T1068</strong> Exploitation PE
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Privilege Escalation', 'T1055', 'Process Injection', 'Cobalt Strike Beacon', 'alert process any any (msg:\'VirtualAllocEx remote thread injection into lsass.exe\'; sid:2001055;)')">
+                <strong>T1055</strong> Process Injection
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Privilege Escalation', 'T1134', 'Access Token Manipulation', 'APT29 Cozy Bear', 'alert process any any (msg:\'DuplicateTokenEx Impersonation Token Assigned\'; sid:2001134;)')">
+                <strong>T1134</strong> Token Manipulation
+            </div>
+        </div>
+
+        <!-- Defense Evasion -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Defense Evasion</span>
+                <span class="badge bg-danger">TA0005</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Defense Evasion', 'T1027', 'Obfuscated / Packed Files', 'LockBit / RedLine', 'alert file any any (msg:\'High Entropy PE Section Detected (> 7.5 UPX/Themida)\'; sid:2001027;)')">
+                <strong>T1027</strong> Binary Packing
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Defense Evasion', 'T1562.001', 'Disable Security Tools', 'LockBit 3.0', 'alert process any any (msg:\'Windows Defender real-time monitoring disable command\'; content:\'Set-MpPreference -DisableRealtimeMonitoring\'; sid:2001562;)')">
+                <strong>T1562.001</strong> Disable Tools
+            </div>
+            <div class="mitre-tech-card heat-med" onclick="inspectMitreTechnique('Defense Evasion', 'T1070', 'Indicator Removal: Clear Event Logs', 'Volt Typhoon', 'alert process any any (msg:\'wevtutil.exe cl System / Security cleared\'; sid:2001070;)')">
+                <strong>T1070</strong> Clear Logs
+            </div>
+        </div>
+
+        <!-- Credential Access -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Credential Access</span>
+                <span class="badge bg-warning text-dark">TA0006</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Credential Access', 'T1003.001', 'OS Credential Dumping: LSASS', 'RedLine / Cobalt Strike', 'alert process any any (msg:\'LSASS memory access via MiniDumpWriteDump\'; sid:2001003;)')">
+                <strong>T1003.001</strong> LSASS Dump
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Credential Access', 'T1555', 'Credentials from Password Stores', 'RedLine Stealer', 'alert file any any (msg:\'Chromium Login Data SQLite DB Access\'; content:\'AppData\\Local\\Google\\Chrome\\User Data\\Default\\Login Data\'; sid:2001555;)')">
+                <strong>T1555</strong> Password Vaults
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Credential Access', 'T1110', 'Brute Force: Password Spraying', 'Scattered Spider', 'alert tcp any any -> $DC_HOST 88 (msg:\'Kerberos Pre-Auth Failure Burst\'; sid:2001110;)')">
+                <strong>T1110</strong> Password Spray
+            </div>
+        </div>
+
+        <!-- Command & Control -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Command & Control</span>
+                <span class="badge bg-danger">TA0011</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Command and Control', 'T1071.001', 'Application Layer: Web Protocols', 'Cobalt Strike / APT29', 'alert http $HOME_NET any -> 185.220.101.45 443 (msg:\'Cobalt Strike Malleable C2 Beacon\'; content:\'POST /submit.php?id=\'; sid:2001071;)')">
+                <strong>T1071.001</strong> Web Protocols
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Command and Control', 'T1090.003', 'Proxy: Multi-hop Proxy / Tor', 'LockBit 3.0', 'alert tcp $HOME_NET any -> 89.248.172.12 9001 (msg:\'Tor Relay / Onion Gateway Traffic Observed\'; sid:2001090;)')">
+                <strong>T1090.003</strong> Tor Multi-hop
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Command and Control', 'T1568.002', 'Dynamic Resolution: Domain Flux (DGA)', 'Emotet', 'alert dns any any -> any any (msg:\'DGA Algorithmic Query High NXDomain Rate\'; sid:2001568;)')">
+                <strong>T1568.002</strong> DGA Flux
+            </div>
+        </div>
+
+        <!-- Exfiltration & Impact -->
+        <div class="mitre-tactic-col">
+            <div class="mitre-tactic-header">
+                <span>Impact & Extortion</span>
+                <span class="badge bg-danger">TA0040</span>
+            </div>
+            <div class="mitre-tech-card heat-critical" onclick="inspectMitreTechnique('Impact', 'T1486', 'Data Encrypted for Impact', 'LockBit 3.0 Black', 'alert file any any (msg:\'Mass File Extension Mutation to .lockbit observed\'; threshold:type threshold, count 100, seconds 5; sid:2001486;)')">
+                <strong>T1486</strong> Ransom Encrypt
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Impact', 'T1490', 'Inhibit System Recovery', 'LockBit 3.0', 'alert process any any (msg:\'vssadmin.exe delete shadows /all /quiet\'; sid:2001490;)')">
+                <strong>T1490</strong> Wipe Backups
+            </div>
+            <div class="mitre-tech-card heat-high" onclick="inspectMitreTechnique('Exfiltration', 'T1048', 'Exfiltration Over Alternative Protocol', 'Lazarus Group', 'alert tcp $HOME_NET any -> $EXTERNAL_NET 21 (msg:\'Unusual Outbound Mega-Byte Transfer via FTP/SFTP\'; sid:2001048;)')">
+                <strong>T1048</strong> Data Exfiltration
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Intelligence & Analytics Grid -->
+<div class="bottom-grid">
+    <!-- Top Attack Origins -->
+    <div class="chart-card">
+        <h4><i class="bi bi-pie-chart text-info"></i> Top Adversary Origins</h4>
+        <p>Geopolitical threat origin distribution (Rolling 24 Hours)</p>
+        <div style="height: 220px; position: relative;">
+            <canvas id="originChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Threat Vector Breakdown -->
+    <div class="chart-card">
+        <h4><i class="bi bi-diagram-2 text-warning"></i> Attack Vectors & Classifications</h4>
+        <p>Observed malicious payload & technique telemetry</p>
+        <div style="height: 220px; position: relative;">
+            <canvas id="typeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Threat Intensity Trend -->
+    <div class="chart-card">
+        <h4><i class="bi bi-graph-up text-danger"></i> Attack Velocity Index</h4>
+        <p>Composite attack frequency & volume (Last 24h)</p>
+        <div style="height: 220px; position: relative;">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Top Malicious Infrastructure -->
+    <div class="chart-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h4><i class="bi bi-shield-slash text-danger"></i> Top Active Adversary Nodes</h4>
+            <a href="{{ url_for('threat_feed') }}" class="small text-info text-decoration-none">Full Feed →</a>
+        </div>
+        <p>Highest frequency C2 and exploitation nodes</p>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Node IP</th>
+                        <th>Country</th>
+                        <th>ASN</th>
+                        <th>Attribution</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in malicious_ips %}
+                    <tr>
+                        <td class="font-monospace text-info small fw-bold">{{ item.ip }}</td>
+                        <td>{{ item.country }}</td>
+                        <td class="font-monospace small text-muted">{{ item.asn }}</td>
+                        <td><span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25">{{ item.actor }}</span></td>
+                        <td class="text-end">
+                            <a href="{{ url_for('correlation_engine', indicator=item.ip) }}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:11px;" title="Correlate in Graph">
+                                Correlate
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

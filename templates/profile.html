@@ -1,437 +1,139 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="pro-layout">
-    <aside class="pro-sidebar">
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white">
+            <i class="bi bi-person-badge text-info"></i> Analyst Identity & Security Profile
+        </h1>
+        <p class="text-secondary mb-0 small">Manage your authenticated CTICD operator credentials, clearances, and audit telemetry.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('edit_profile') }}" class="btn cyber-btn btn-sm">
+            <i class="bi bi-pencil-square"></i> Edit Profile
+        </a>
+        <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-key"></i> Change Password
+        </a>
+        <a href="{{ url_for('export_profile') }}" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-download"></i> Export Dossier
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="cyber-card text-center p-4">
+            <div class="user-avatar-badge mx-auto mb-3" style="width: 80px; height: 80px; font-size: 32px; border-radius: 20px;">
+                {{ current_user.name[:1].upper() if current_user.name else 'A' }}
             </div>
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
+            <h4 class="fw-bold text-white mb-1">{{ current_user.name }}</h4>
+            <p class="text-info small mb-2">{{ current_user.role or 'Security Analyst' }}</p>
+            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-1 mb-3">
+                <i class="bi bi-shield-check"></i> ACTIVE OPERATOR
+            </span>
+
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 text-start small">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Badge ID:</span>
+                    <strong class="text-white font-monospace">{{ current_user.badge_id or 'SOC-8421' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Clearance:</span>
+                    <strong class="text-danger">SECRET // TLP:AMBER</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Enclave:</span>
+                    <strong class="text-info">{{ current_user.department or 'Cyber Defense & Intel' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Last Active:</span>
+                    <span class="text-muted font-monospace">{{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'Active Now' }}</span>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="pro-menu">
-            <a href="{{ url_for('dashboard') }}"><i class="bi bi-house-door-fill"></i> Dashboard</a>
-            <a href="{{ url_for('ioc_search') }}"><i class="bi bi-search"></i> IOC Search</a>
-            <a href="{{ url_for('threat_map') }}"><i class="bi bi-globe2"></i> Threat Map</a>
-            <a href="{{ url_for('threat_feed') }}"><i class="bi bi-broadcast"></i> Threat Feed</a>
-            <a href="{{ url_for('correlation_engine') }}"><i class="bi bi-diagram-3"></i> Correlation Engine</a>
-            <a href="{{ url_for('malware_analysis') }}"><i class="bi bi-bug"></i> Malware Analysis</a>
-            <a href="{{ url_for('cve_explorer') }}"><i class="bi bi-exclamation-triangle"></i> CVE Explorer</a>
-            <a href="{{ url_for('reports') }}"><i class="bi bi-file-earmark-text"></i> Reports</a>
-            <a class="active" href="{{ url_for('profile') }}"><i class="bi bi-person-circle"></i> My Profile</a>
-            <a href="{{ url_for('alerts') }}"><i class="bi bi-bell"></i> Alerts</a>
-            <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left"></i> Logout</a>
-        </div>
-
-        <div class="pro-system">
-            <h5>User Profile</h5>
-            <p class="green">● Account Active</p>
-            <hr>
-            <p>Role</p>
-            <h6>Security Analyst</h6>
-            <p>Status</p>
-            <h6>Authenticated</h6>
-            <p>Access Level</p>
-            <h6>Administrator</h6>
-        </div>
-    </aside>
-
-    <main class="pro-main">
-        <div class="pro-top">
-            <div>
-                <h1>My Profile</h1>
-                <p>Manage your CTICD account and security preferences.</p>
+    <!-- Security Attributes & Information -->
+    <div class="col-lg-8">
+        <div class="cyber-card p-4">
+            <div class="pro-title">
+                <h3><i class="bi bi-person-lines-fill text-info"></i> Account Details & Authorization</h3>
             </div>
 
-            <a href="{{ url_for('edit_profile') }}" class="btn cyber-btn">
-                <i class="bi bi-pencil-square"></i> Edit Profile
-            </a>
-        </div>
+            <table class="table table-dark table-sm mb-4">
+                <tr>
+                    <th width="180">Full Name:</th>
+                    <td class="text-white fw-bold">{{ current_user.name }}</td>
+                </tr>
+                <tr>
+                    <th>Email Address:</th>
+                    <td class="font-monospace text-info">{{ current_user.email }}</td>
+                </tr>
+                <tr>
+                    <th>Contact Phone:</th>
+                    <td class="text-secondary">{{ current_user.mobile or 'Not specified' }}</td>
+                </tr>
+                <tr>
+                    <th>Assigned Department:</th>
+                    <td>{{ current_user.department or 'Cyber Threat Intelligence Operations' }}</td>
+                </tr>
+                <tr>
+                    <th>Operational Role:</th>
+                    <td><span class="badge bg-info text-dark fw-bold">{{ current_user.role or 'Security Analyst' }}</span></td>
+                </tr>
+                <tr>
+                    <th>Account Created:</th>
+                    <td class="text-muted font-monospace">{{ current_user.created_at.strftime('%d %B %Y') if current_user.created_at else '2026' }}</td>
+                </tr>
+            </table>
 
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="pro-panel text-center">
-                    <div style="margin-top:10px;">
-                        <div class="pro-user mx-auto mb-3" style="width:120px;height:120px;font-size:48px;">
-                            <i class="bi bi-person-fill"></i>
+            <div class="pro-title">
+                <h3><i class="bi bi-shield-lock-fill text-warning"></i> Access Privileges & Entitlements</h3>
+            </div>
+
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle text-success fs-5"></i>
+                        <div>
+                            <strong class="small d-block text-white">Full Correlation Graph Access</strong>
+                            <small class="text-muted">Query adversary relationships & TTPs</small>
                         </div>
-                        <h3>{{ current_user.name }}</h3>
-                        <p class="text-secondary">Security Analyst</p>
-                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle text-success fs-5"></i>
+                        <div>
+                            <strong class="small d-block text-white">Perimeter Drop Authorization</strong>
+                            <small class="text-muted">Export firewall & IDS signatures</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle text-success fs-5"></i>
+                        <div>
+                            <strong class="small d-block text-white">Incident Triage & Status Update</strong>
+                            <small class="text-muted">Modify alert severity & investigation state</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle text-success fs-5"></i>
+                        <div>
+                            <strong class="small d-block text-white">Executive Dossier Generation</strong>
+                            <small class="text-muted">Publish CISO briefings & CSV exports</small>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-8">
-                <div class="pro-panel">
-                    <div class="pro-title">
-                        <h3><i class="bi bi-person-vcard"></i> User Information</h3>
-                    </div>
-
-                    <table class="table table-dark table-hover">
-                        <tr>
-                            <th width="220">Full Name</th>
-                            <td>{{ current_user.name }}</td>
-                        </tr>
-                        <tr>
-                            <th>Email Address</th>
-                            <td>{{ current_user.email }}</td>
-                        </tr>
-                        <tr>
-                            <th>Mobile Number</th>
-                            <td>{{ current_user.mobile }}</td>
-                        </tr>
-                        <tr>
-                            <th>User ID</th>
-                            <td>{{ current_user.id }}</td>
-                        </tr>
-                        <tr>
-                            <th>Role</th>
-                            <td>Security Analyst</td>
-                        </tr>
-                        <tr>
-                            <th>Account Status</th>
-                            <td><span class="badge bg-success">Active</span></td>
-                        </tr>
-                        <tr>
-                            <th>Last Login</th>
-                            <td>Current Session</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
         </div>
-        <br>
-
-<div class="pro-stats">
-
-    <div class="pro-card success">
-        <p>Reports Generated</p>
-        <h2>18</h2>
-        <small>This Month</small>
-        <b>Active</b>
-        <div class="spark"></div>
     </div>
-
-    <div class="pro-card success">
-        <p>IOC Searches</p>
-        <h2>246</h2>
-        <small>Total Queries</small>
-        <b>Tracked</b>
-        <div class="spark"></div>
-    </div>
-
-    <div class="pro-card danger">
-        <p>Critical Alerts</p>
-        <h2>32</h2>
-        <small>Reviewed</small>
-        <b>High</b>
-        <div class="spark"></div>
-    </div>
-
-    <div class="pro-card success">
-        <p>Login Status</p>
-        <h2>Online</h2>
-        <small>Authenticated</small>
-        <b>Secure</b>
-        <div class="spark"></div>
-    </div>
-
-    <div class="pro-card success">
-        <p>Access Level</p>
-        <h2>Admin</h2>
-        <small>Permissions</small>
-        <b>Full</b>
-        <div class="spark"></div>
-    </div>
-
-</div>
-
-<div class="row">
-
-    <div class="col-lg-7">
-
-        <div class="pro-panel mb-4">
-
-            <div class="pro-title">
-                <h3>
-                    <i class="bi bi-activity"></i>
-                    Recent Account Activity
-                </h3>
-            </div>
-
-            <table class="table table-dark table-hover">
-
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Activity</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <tr>
-                        <td>Today</td>
-                        <td>Logged into CTICD Dashboard</td>
-                        <td><span class="badge bg-success">Success</span></td>
-                    </tr>
-
-                    <tr>
-                        <td>Today</td>
-                        <td>Generated Threat Report</td>
-                        <td><span class="badge bg-primary">Completed</span></td>
-                    </tr>
-
-                    <tr>
-                        <td>Today</td>
-                        <td>IOC Search Performed</td>
-                        <td><span class="badge bg-info">Completed</span></td>
-                    </tr>
-
-                    <tr>
-                        <td>Yesterday</td>
-                        <td>Malware Analysis Executed</td>
-                        <td><span class="badge bg-warning text-dark">Finished</span></td>
-                    </tr>
-
-                    <tr>
-                        <td>Yesterday</td>
-                        <td>Correlation Graph Generated</td>
-                        <td><span class="badge bg-success">Success</span></td>
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-5">
-
-        <div class="pro-panel mb-4">
-
-            <div class="pro-title">
-                <h3>
-                    <i class="bi bi-shield-check"></i>
-                    Account Security
-                </h3>
-            </div>
-
-            <table class="table table-dark table-hover">
-
-                <tr>
-                    <th>Password</th>
-                    <td><span class="badge bg-success">Protected</span></td>
-                </tr>
-
-                <tr>
-                    <th>Email Verified</th>
-                    <td><span class="badge bg-success">Verified</span></td>
-                </tr>
-
-                <tr>
-                    <th>Account Status</th>
-                    <td><span class="badge bg-success">Active</span></td>
-                </tr>
-
-                <tr>
-                    <th>Security Score</th>
-                    <td><span class="badge bg-primary">95 / 100</span></td>
-                </tr>
-
-                <tr>
-                    <th>Authentication</th>
-                    <td><span class="badge bg-info">Session Active</span></td>
-                </tr>
-
-            </table>
-
-        </div>
-        <div class="pro-panel">
-
-    <div class="pro-title">
-        <h3>
-            <i class="bi bi-person-gear"></i>
-            Quick Actions
-        </h3>
-    </div>
-
-    <div class="d-grid gap-3">
-
-        <a href="{{ url_for('edit_profile') }}" class="btn cyber-btn">
-            <i class="bi bi-pencil-square"></i>
-            Edit Profile
-        </a>
-
-        <a href="{{ url_for('change_password') }}" class="btn cyber-btn">
-            <i class="bi bi-key"></i>
-            Change Password
-        </a>
-
-        <a href="{{ url_for('export_profile') }}" class="btn cyber-btn">
-            <i class="bi bi-download"></i>
-            Export Profile
-        </a>
-
-        <a href="{{ url_for('logout') }}" class="btn btn-danger">
-            <i class="bi bi-box-arrow-right"></i>
-            Logout
-        </a>
-
-    </div>
-
-</div>
-
-</div>
-
-</div>
-
-<br>
-
-<div class="row">
-
-    <div class="col-lg-6">
-
-        <div class="pro-panel mb-4">
-
-            <div class="pro-title">
-                <h3>
-                    <i class="bi bi-sliders"></i>
-                    User Preferences
-                </h3>
-            </div>
-
-            <table class="table table-dark table-hover">
-
-                <tr>
-                    <th width="220">Dashboard Theme</th>
-                    <td>Dark Cyber Mode</td>
-                </tr>
-
-                <tr>
-                    <th>Default Module</th>
-                    <td>Dashboard</td>
-                </tr>
-
-                <tr>
-                    <th>Report Format</th>
-                    <td>PDF / Print</td>
-                </tr>
-
-                <tr>
-                    <th>Timezone</th>
-                    <td>Asia/Kolkata</td>
-                </tr>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <div class="col-lg-6">
-
-        <div class="pro-panel mb-4">
-
-            <div class="pro-title">
-                <h3>
-                    <i class="bi bi-bell"></i>
-                    Notification Settings
-                </h3>
-            </div>
-
-            <table class="table table-dark table-hover">
-
-                <tr>
-                    <th width="220">Critical Alerts</th>
-                    <td><span class="badge bg-success">Enabled</span></td>
-                </tr>
-
-                <tr>
-                    <th>Threat Feed Updates</th>
-                    <td><span class="badge bg-success">Enabled</span></td>
-                </tr>
-
-                <tr>
-                    <th>Report Notifications</th>
-                    <td><span class="badge bg-info">Manual</span></td>
-                </tr>
-
-                <tr>
-                    <th>Email Alerts</th>
-                    <td><span class="badge bg-warning text-dark">Pending Setup</span></td>
-                </tr>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</div>
-<div class="pro-panel mb-4">
-
-    <div class="pro-title">
-        <h3>
-            <i class="bi bi-info-circle"></i>
-            Account Summary
-        </h3>
-    </div>
-
-    <p class="text-secondary">
-        This account is configured for cyber threat monitoring, IOC investigation,
-        malware analysis, CVE intelligence, report generation and threat correlation.
-        The current user has administrator privileges and full access to all CTICD
-        modules. The account is active, authenticated and operating under a secure
-        session.
-    </p>
-
-    <hr>
-
-    <div class="row text-center">
-
-        <div class="col-md-3">
-            <h2 class="text-success">99.8%</h2>
-            <small>System Availability</small>
-        </div>
-
-        <div class="col-md-3">
-            <h2 class="text-info">24/7</h2>
-            <small>Threat Monitoring</small>
-        </div>
-
-        <div class="col-md-3">
-            <h2 class="text-warning">256</h2>
-            <small>Investigations</small>
-        </div>
-
-        <div class="col-md-3">
-            <h2 class="text-danger">18</h2>
-            <small>Reports Generated</small>
-        </div>
-
-    </div>
-
-</div>
-
-<footer class="text-center mt-4 mb-3">
-
-    <small class="text-secondary">
-        CTICD © 2026 | Cyber Threat Intelligence Correlation Dashboard
-    </small>
-
-</footer>
-
-</main>
-
 </div>
 
 {% endblock %}

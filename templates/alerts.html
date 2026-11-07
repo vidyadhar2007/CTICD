@@ -1,362 +1,233 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<div class="pro-layout">
-
-    <aside class="pro-sidebar">
-
-        <div class="pro-brand">
-            <div class="pro-logo">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-
-            <div>
-                <h2>CTICD</h2>
-                <p>Cyber Threat Intelligence<br>Correlation Dashboard</p>
-            </div>
-        </div>
-
-        <div class="pro-menu">
-
-            <a href="{{ url_for('dashboard') }}">
-                <i class="bi bi-house-door-fill"></i>
-                Dashboard
-            </a>
-
-            <a href="{{ url_for('ioc_search') }}">
-                <i class="bi bi-search"></i>
-                IOC Search
-            </a>
-
-            <a href="{{ url_for('threat_map') }}">
-                <i class="bi bi-globe2"></i>
-                Threat Map
-            </a>
-
-            <a href="{{ url_for('threat_feed') }}">
-                <i class="bi bi-broadcast"></i>
-                Threat Feed
-            </a>
-
-            <a href="{{ url_for('correlation_engine') }}">
-                <i class="bi bi-diagram-3"></i>
-                Correlation Engine
-            </a>
-
-            <a href="{{ url_for('malware_analysis') }}">
-                <i class="bi bi-bug"></i>
-                Malware Analysis
-            </a>
-
-            <a href="{{ url_for('cve_explorer') }}">
-                <i class="bi bi-exclamation-triangle"></i>
-                CVE Explorer
-            </a>
-
-            <a href="{{ url_for('reports') }}">
-                <i class="bi bi-file-earmark-text"></i>
-                Reports
-            </a>
-
-            <a href="{{ url_for('profile') }}">
-                <i class="bi bi-person-circle"></i>
-                Profile
-            </a>
-
-            <a class="active" href="{{ url_for('alerts') }}">
-                <i class="bi bi-bell-fill"></i>
-                Alerts
-            </a>
-
-            <a href="{{ url_for('logout') }}">
-                <i class="bi bi-box-arrow-left"></i>
-                Logout
-            </a>
-
-        </div>
-
-        <div class="pro-system">
-            <h5>Alert Center</h5>
-
-            <p class="green">● Monitoring Active</p>
-
-            <hr>
-
-            <p>Total Alerts</p>
-            <h6>{{ alerts|length }}</h6>
-
-            <p>Critical Alerts</p>
-            <h6>{{ critical_count }}</h6>
-
-            <p>Last Updated</p>
-            <h6 id="systemTime">Loading...</h6>
-
-        </div>
-
-    </aside>
-
-    <main class="pro-main">
-
-        <div class="pro-top">
-
-            <div>
-                <h1>Security Alerts</h1>
-                <p>Real-time Security Event Monitoring</p>
-            </div>
-
-            <div class="dropdown">
-
-                <a class="d-flex align-items-center gap-3 text-decoration-none text-light dropdown-toggle"
-                   href="#"
-                   data-bs-toggle="dropdown">
-
-                    <div class="pro-user">
-                        <i class="bi bi-person"></i>
-                    </div>
-
-                    <div>
-                        <strong>{{ current_user.name }}</strong>
-                        <p class="mb-0">Security Analyst</p>
-                    </div>
-
-                </a>
-
-                <ul class="dropdown-menu dropdown-menu-end">
-
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('profile') }}">
-                            <i class="bi bi-person-circle"></i>
-                            My Profile
-                        </a>
-                    </li>
-
-                    <li>
-                        <a class="dropdown-item" href="{{ url_for('edit_profile') }}">
-                            <i class="bi bi-pencil-square"></i>
-                            Edit Profile
-                        </a>
-                    </li>
-
-                    <li><hr class="dropdown-divider"></li>
-
-                    <li>
-                        <a class="dropdown-item text-danger"
-                           href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right"></i>
-                            Logout
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </div>
-        <div class="pro-stats">
-
-    <div class="pro-card danger">
-        <p>Critical Alerts</p>
-        <h2>{{ critical_count }}</h2>
-        <small>Immediate Action</small>
-        <b class="text-danger">Priority 1</b>
-        <div class="spark"></div>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1 text-white">
+            <i class="bi bi-bell-fill text-warning"></i> Security Operations Alert Center
+        </h1>
+        <p class="text-secondary mb-0 small">Active incident triage queue, alert correlation, status workflows, and operator assignment.</p>
     </div>
-
-    <div class="pro-card">
-        <p>High Alerts</p>
-        <h2>{{ high_count }}</h2>
-        <small>Investigate</small>
-        <b class="text-warning">Priority 2</b>
-        <div class="spark"></div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-danger p-2 px-3 fw-bold">{{ critical_count }} CRITICAL ACTIVE</span>
+        <button class="btn btn-outline-info btn-sm" onclick="window.location.reload();">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Queue
+        </button>
     </div>
-
-    <div class="pro-card">
-        <p>Medium Alerts</p>
-        <h2>{{ medium_count }}</h2>
-        <small>Monitor</small>
-        <b class="text-info">Priority 3</b>
-        <div class="spark"></div>
-    </div>
-
-    <div class="pro-card">
-        <p>Low Alerts</p>
-        <h2>{{ low_count }}</h2>
-        <small>Informational</small>
-        <b class="text-success">Priority 4</b>
-        <div class="spark"></div>
-    </div>
-
-    <div class="pro-card">
-        <p>Total Alerts</p>
-        <h2>{{ alerts|length }}</h2>
-        <small>Current Session</small>
-        <b>{{ alerts|length }}</b>
-        <div class="spark"></div>
-    </div>
-
 </div>
 
-<div class="pro-panel">
+<!-- Alert Metrics Row -->
+<div class="pro-stats">
+    <div class="pro-card danger">
+        <p>Total Alert Queue</p>
+        <h2>{{ alerts|length }}</h2>
+        <small>Active Incidents</small>
+        <b>SOC Queue</b>
+    </div>
+    <div class="pro-card danger">
+        <p>Critical Priority</p>
+        <h2>{{ critical_count }}</h2>
+        <small>Immediate Containment</small>
+        <b>Urgent</b>
+    </div>
+    <div class="pro-card warning">
+        <p>High Priority</p>
+        <h2>{{ high_count }}</h2>
+        <small>Elevated Triage</small>
+        <b>Pending</b>
+    </div>
+    <div class="pro-card cyan">
+        <p>Medium Priority</p>
+        <h2>{{ medium_count }}</h2>
+        <small>Standard Monitoring</small>
+        <b>Normal</b>
+    </div>
+    <div class="pro-card success">
+        <p>Low Priority</p>
+        <h2>{{ low_count }}</h2>
+        <small>Informational</small>
+        <b>Logged</b>
+    </div>
+</div>
 
-    <div class="pro-title">
-
-        <div>
-            <h3>Security Alert Center</h3>
-            <p>Real-time Threat Notifications</p>
+<!-- Alert Filter Bar -->
+<div class="cyber-card p-3 mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-lg-5 col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                <input type="text" id="alertSearch" class="form-control cyber-input" placeholder="Search by alert ID, category, IP, or country..." onkeyup="filterAlerts()">
+            </div>
         </div>
-
-        <div class="d-flex gap-2">
-
-            <select id="severityFilter" class="form-select bg-dark text-light border-secondary">
-
-                <option value="all">All Severity</option>
+        <div class="col-lg-3 col-md-3">
+            <select id="alertSeverityFilter" class="form-select form-select-sm bg-dark text-light border-secondary" onchange="filterAlerts()">
+                <option value="all">All Severities</option>
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
-
             </select>
-
-            <select id="typeFilter" class="form-select bg-dark text-light border-secondary">
-
-                <option value="all">All Types</option>
-                <option>DDoS Attack</option>
-                <option>Brute Force Attack</option>
-                <option>SQL Injection Attempt</option>
-                <option>Malware Detected</option>
-                <option>Phishing Campaign</option>
-
-            </select>
-
         </div>
-
-    </div>
-
-    <div id="alertsContainer">
-                {% for alert in alerts %}
-        <div class="alert-card" data-severity="{{ alert.level }}" data-type="{{ alert.type }}">
-            <div class="alert-left">
-                <div class="dot {{ alert.level }}"></div>
-                <div>
-                    <h5>{{ alert.type }}</h5>
-                    <p>{{ alert.source }} → {{ alert.target }}</p>
-                    <small>{{ alert.description }}</small>
-                </div>
-            </div>
-
-            <div class="alert-mid">
-                {% if alert.level == "critical" %}
-                <span class="badge bg-danger">Critical</span>
-                {% elif alert.level == "high" %}
-                <span class="badge bg-warning text-dark">High</span>
-                {% elif alert.level == "medium" %}
-                <span class="badge bg-info">Medium</span>
-                {% else %}
-                <span class="badge bg-success">Low</span>
-                {% endif %}
-                <p>{{ alert.mitre }}</p>
-            </div>
-
-            <div class="alert-right">
-                <span>{{ alert.time }}</span>
-                <button class="btn btn-sm cyber-btn">Investigate</button>
-            </div>
+        <div class="col-lg-4 col-md-4 text-end text-muted small">
+            <span>Showing {{ alerts|length }} total tracked incidents</span>
         </div>
-        {% endfor %}
     </div>
 </div>
-    <div class="pro-panel mt-4">
 
-        <div class="pro-title">
-            <h3>Alert Response Summary</h3>
-        </div>
-
-        <div class="row">
-
-            <div class="col-lg-3">
-                <div class="chart-card text-center">
-                    <h4>{{ critical_count }}</h4>
-                    <p>Critical</p>
-                </div>
-            </div>
-
-            <div class="col-lg-3">
-                <div class="chart-card text-center">
-                    <h4>{{ high_count }}</h4>
-                    <p>High</p>
-                </div>
-            </div>
-
-            <div class="col-lg-3">
-                <div class="chart-card text-center">
-                    <h4>{{ medium_count }}</h4>
-                    <p>Medium</p>
-                </div>
-            </div>
-
-            <div class="col-lg-3">
-                <div class="chart-card text-center">
-                    <h4>{{ low_count }}</h4>
-                    <p>Low</p>
-                </div>
-            </div>
-
-        </div>
-
+<!-- Alerts Table -->
+<div class="cyber-card p-0">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" id="alertsTable">
+            <thead class="border-bottom border-secondary border-opacity-25">
+                <tr>
+                    <th>Alert ID</th>
+                    <th>Severity</th>
+                    <th>Incident Title / Category</th>
+                    <th>Telemetry (Src → Tgt)</th>
+                    <th>MITRE TTP</th>
+                    <th>Status</th>
+                    <th>Assigned Analyst</th>
+                    <th>Time</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr class="alert-row" data-severity="{{ alert.level }}" id="alert-row-{{ alert.id }}">
+                    <td class="font-monospace text-info small fw-bold">{{ alert.alert_id }}</td>
+                    <td>
+                        <span class="badge {% if alert.level == 'critical' %}bg-danger{% elif alert.level == 'high' %}bg-warning text-dark{% else %}bg-info{% endif %}">
+                            {{ alert.level|upper }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-white small">{{ alert.title }}</div>
+                        <small class="text-muted">{{ alert.type }}</small>
+                    </td>
+                    <td>
+                        <div class="small text-light">{{ alert.source }} ({{ alert.source_ip }}) → {{ alert.target }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary bg-opacity-25 text-info" style="font-size:11px;">{{ alert.mitre }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-dark border border-secondary text-light status-pill" id="status-badge-{{ alert.id }}">
+                            {{ alert.status }}
+                        </span>
+                    </td>
+                    <td class="small text-muted" id="assigned-{{ alert.id }}">{{ alert.assigned_to }}</td>
+                    <td class="font-monospace text-muted small">{{ alert.time }}</td>
+                    <td class="text-end" style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline-info py-1 px-2" style="font-size:11px;" onclick="openTriageModal('{{ alert.id }}', '{{ alert.alert_id }}', '{{ alert.title }}', '{{ alert.status }}', '{{ alert.description }}')">
+                            <i class="bi bi-pencil-square"></i> Triage
+                        </button>
+                        {% if alert.source_ip and alert.source_ip != 'N/A' %}
+                        <a href="{{ url_for('correlation_engine', indicator=alert.source_ip) }}" class="btn btn-sm btn-outline-secondary py-1 px-2" style="font-size:11px;" title="Correlate Source IP">
+                            <i class="bi bi-diagram-3"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+</div>
 
-</main>
-
+<!-- Modal for Triage & Status Update -->
+<div class="modal fade" id="triageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border border-secondary border-opacity-50">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title h6 fw-bold" id="modalAlertTitle">Triage Incident</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalAlertId">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Update Incident Status</label>
+                    <select id="modalStatusSelect" class="form-select bg-dark text-light border-secondary">
+                        <option value="New">New</option>
+                        <option value="Investigating">Investigating</option>
+                        <option value="Contained">Contained</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="False Positive">False Positive</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Incident Description & Context</label>
+                    <div id="modalDescription" class="p-2 rounded bg-black text-secondary small border border-secondary border-opacity-25"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Add Analyst Triage Notes</label>
+                    <textarea id="modalAnalystNotes" class="form-control cyber-input" rows="3" placeholder="Enter findings, containment actions, or ticket references..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-25">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn cyber-btn btn-sm" onclick="saveTriageUpdate()">Save Changes</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+let activeTriageModal = null;
 
-document.getElementById("severityFilter").addEventListener("change",filterAlerts);
-document.getElementById("typeFilter").addEventListener("change",filterAlerts);
+function filterAlerts() {
+    const input = document.getElementById("alertSearch").value.toLowerCase();
+    const severity = document.getElementById("alertSeverityFilter").value.toLowerCase();
+    const rows = document.querySelectorAll("#alertsTable tbody tr");
 
-function filterAlerts(){
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const rowSeverity = row.getAttribute("data-severity") || "";
+        const matchesText = text.includes(input);
+        const matchesSeverity = severity === "all" || rowSeverity === severity;
 
-    const severity=document.getElementById("severityFilter").value;
-    const type=document.getElementById("typeFilter").value;
-
-    document.querySelectorAll(".alert-card").forEach(card=>{
-
-        const s=card.dataset.severity;
-        const t=card.dataset.type;
-
-        let show=true;
-
-        if(severity!=="all" && s!==severity){
-            show=false;
+        if (matchesText && matchesSeverity) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
         }
-
-        if(type!=="all" && t!==type){
-            show=false;
-        }
-
-        card.style.display=show?"flex":"none";
-
     });
-
 }
 
-function updateClock(){
+function openTriageModal(id, alertId, title, status, description) {
+    document.getElementById("modalAlertId").value = id;
+    document.getElementById("modalAlertTitle").textContent = `${alertId}: ${title}`;
+    document.getElementById("modalStatusSelect").value = status;
+    document.getElementById("modalDescription").textContent = description;
+    document.getElementById("modalAnalystNotes").value = "";
 
-    const now=new Date();
-
-    document.getElementById("systemTime").innerHTML=
-    now.toLocaleTimeString("en-IN",{
-        hour:"2-digit",
-        minute:"2-digit",
-        second:"2-digit"
-    });
-
+    const modalEl = document.getElementById("triageModal");
+    activeTriageModal = new bootstrap.Modal(modalEl);
+    activeTriageModal.show();
 }
 
-updateClock();
+function saveTriageUpdate() {
+    const id = document.getElementById("modalAlertId").value;
+    const newStatus = document.getElementById("modalStatusSelect").value;
+    const notes = document.getElementById("modalAnalystNotes").value;
 
-setInterval(updateClock,1000);
-
+    fetch(`/api/alerts/${id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus, notes: notes })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const badge = document.getElementById(`status-badge-${id}`);
+            if (badge) badge.textContent = data.status;
+            const assigned = document.getElementById(`assigned-${id}`);
+            if (assigned) assigned.textContent = data.assigned_to;
+            if (activeTriageModal) activeTriageModal.hide();
+        }
+    })
+    .catch(err => console.error("Error updating alert status:", err));
+}
 </script>
 
 {% endblock %}
